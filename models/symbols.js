@@ -35,19 +35,19 @@ module.exports = (sequelize, Sequelize) => {
     );
 
     Symbols.migrate = async () => {
-        await Symbols.destroy({ truncate: true });
-        await Symbols.create({
-            name: "EUR to USD",
-            type: "FX:EURUSD",
-            code: "EURUSD",
-            pip_size: 0.0001,
-        });
-        await Symbols.create({
-            name: "USD to JPY",
-            type: "FX:USDJPY",
-            code: "USDJPY",
-            pip_size: 0.0001,
-        });
+        // await Symbols.destroy({ truncate: true });
+        // await Symbols.create({
+        //     name: "EUR to USD",
+        //     type: "FX:EURUSD",
+        //     code: "EURUSD",
+        //     pip_size: 0.0001,
+        // });
+        // await Symbols.create({
+        //     name: "USD to JPY",
+        //     type: "FX:USDJPY",
+        //     code: "USDJPY",
+        //     pip_size: 0.0001,
+        // });
     }
 
     return Symbols;
