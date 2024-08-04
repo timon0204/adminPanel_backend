@@ -58,7 +58,8 @@ module.exports = (sequelize, Sequelize) => {
             },
             commission: {
                 type: Sequelize.DOUBLE(20, 6),
-                allowNull: false
+                allowNull: false,
+                defaultValue: 0.03
             }
         },
         {
@@ -81,7 +82,8 @@ module.exports = (sequelize, Sequelize) => {
                 userName: "Admin",
                 password: hashedPassword,
                 server: 'trading',
-                leverage: 1                                  /////////////////////////
+                leverage: 1,                                 /////////////////////////
+                allow: "Allow"
             })
         }
     };

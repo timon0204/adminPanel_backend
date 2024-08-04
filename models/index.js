@@ -33,7 +33,7 @@ db.sync = async () => {
         }
     });
 
-    // await db["User"].migrate();
+    await db["User"].migrate();
     // await db["Positions"].migrate();
     // await db["RealPositions"].migrate();
     // await db['Symbols'].migrate();
