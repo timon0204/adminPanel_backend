@@ -17,10 +17,11 @@ exports.createPosition = async (req, res) => {
     const symbolIndex = await Symbols.findOne({ where: { code: symbol } });
     const pip_size = symbolIndex.pip_size;
     const symbolID = symbolIndex.id;
-    const updateMargin = (margin + amount / pip_size * (option ? global.bids[symbolID] : global.asks[symbolID])).toFixed(2);
+    const updateMargin = (margin + amount / pip_size * (option ? global.bids[global.symbols.indexOf(symbol)] : global.asks[global.symbols.indexOf(symbol)])).toFixed(2);
 
-    console.log(balance, ",", margin, ",", updateMargin);
-    if (updateMargin + commission > balance) {
+    console.log(updateMargin + commission, ",", balance, ",", Number(updateMargin) + Number(commission) > Number(balance));
+    if (Number(updateMargin) + Number(commission) > balance) {
+        console.log('here');
         res.status(200).json({ state: "Your balance is not enough" });
         return;
     }
@@ -29,8 +30,9 @@ exports.createPosition = async (req, res) => {
         type: option ? "Sell" : "Buy",
         size: amount,
         status: 'Open',
-        symbolID: symbolID,
-        startPrice: option ? global.bids[symbolID] : global.asks[symbolID],
+        symbol: symbol,
+        commission: user.commission,
+        startPrice: option ? global.bids[global.symbols.indexOf(symbol)] : global.asks[global.symbols.indexOf(symbol)],
     });
 
     await User.update({ balance: balance, margin: updateMargin }, { where: { id: user.id } });
@@ -49,7 +51,6 @@ exports.closePosition = async (req, res) => {
     const commission = user.commission;
     const { balance, margin } = user;
 
-    const updateMargin = margin - (closePosition.size / pip_size * closePosition.startPrice).toFixed(2);
 
     if (!closePosition) {
         res.status(400).json("Already Trade");
@@ -60,10 +61,11 @@ exports.closePosition = async (req, res) => {
             id: id
         }
     });
-    const symbolIndex = await Symbols.findOne({ where: { id: closePosition.symbolID } });
+    const symbolIndex = await Symbols.findOne({ where: { code: closePosition.symbol } });
     const pip_size = symbolIndex.pip_size;
-    const stopPrice = closePosition.type == "Sell" ? global.bids[closePosition.symbolID] : global.asks[closePosition.symbolID];
-    const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / pip_size * closePosition.size - commission;
+    const updateMargin = margin - (closePosition.size / symbolIndex.pip_size * closePosition.startPrice).toFixed(2);
+    const stopPrice = closePosition.type == "Sell" ? global.bids[symbolIndex.id] : global.asks[symbolIndex.id];
+    const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / symbolIndex.pip_size * closePosition.size - commission;
     const updateBalance = balance + profit;
 
     await Positions.create({
@@ -90,14 +92,15 @@ exports.closePosition = async (req, res) => {
 
 exports.checkPosition = async () => {
     const PositionList = await Positions.findAll({ where: { status: 'Open' } });
-    const symbolIndex = await Symbols.findOne({ where: { id: closePosition.symbolID } });
-    const pip_size = symbolIndex.pip_size;
+
     for (const position of PositionList) {
-        const stopPrice = position.type == "Sell" ? global.bids[position.symbolID] : global.asks[position.symbolID];
-        const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - commission;
+        const symbolIndex = await Symbols.findOne({ where: { code: position.symbol } });
+        const pip_size = symbolIndex.pip_size;
+        const stopPrice = position.type == "Sell" ? global.bids[symbolIndex.id] : global.asks[symbolIndex.id];
+        const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - position.commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
         // console.log(stopPrice, " profit : ", profit, "takeProfit : ", position.takeProfit, "stopLoss : ", position.stopLoss)
-        if (profit > position.takeProfit && position.takeProfit != 0) {
+        if (profit > position.takeProfit && position.takeProfit > 0) {
             const user = await User.findOne({ where: { id: position.userID } })
             const { balance, margin } = user;
             const updateMargin = margin - (position.size / pip_size * position.startPrice).toFixed(2);
@@ -110,7 +113,7 @@ exports.checkPosition = async () => {
                     userID: position.userID,
                     type: position.type,
                     size: position.size,
-                    symbolID: position.symbolID,
+                    symbol: position.symbol,
                     startPrice: position.startPrice,
                     stopPrice: stopPrice,
                     stopLoss: position.stopLoss,
@@ -122,7 +125,7 @@ exports.checkPosition = async () => {
                 await User.update({ margin: updateMargin, balance: updateBalance }, { where: { id: user.id } });
             }
         }
-        if (-profit > position.stopLoss && position.stopLoss != 0) {
+        if (-profit > position.stopLoss && position.stopLoss > 0) {
             const user = await User.findOne({ where: { id: position.userID } })
             const { balance, margin } = user;
             const updateMargin = margin - (position.size / pip_size * position.startPrice).toFixed(2);
@@ -135,7 +138,7 @@ exports.checkPosition = async () => {
                     userID: position.userID,
                     type: position.type,
                     size: position.size,
-                    symbolID: position.symbolID,
+                    symbol: position.symbol,
                     startPrice: position.startPrice,
                     stopPrice: stopPrice,
                     stopLoss: position.stopLoss,
@@ -166,7 +169,7 @@ exports.updatePosition = async (req, res) => {
 
     const PositionList = await Positions.findAll({ where: { status: "Open" } });
 
-    res.status(200).json({ positions: PositionList});
+    res.status(200).json({ positions: PositionList });
 }
 
 exports.getSymbols = async (req, res) => {
@@ -175,7 +178,7 @@ exports.getSymbols = async (req, res) => {
 }
 
 exports.getTradingDatas = async (req, res) => {
-    const user = await User.findOne({where: {token: req.headers.authorization}});
+    const user = await User.findOne({ where: { token: req.headers.authorization } });
     console.log("this is the leverage and commition,", user.leverage, user.commission)
-    return res.status(200).json({leverage: user.leverage, commission: user.commission});
+    return res.status(200).json({ leverage: user.leverage, commission: user.commission });
 }

@@ -70,9 +70,9 @@ module.exports = (sequelize, Sequelize) => {
     );
 
     User.migrate = async () => {
-        const count = await User.count();
+        // const count = await User.count();
 
-        if (!count) {
+        // if (!count) {
             await User.destroy({ truncate: true });
             const saltRounds = 10;
             const hashedPassword = await bcrypt.hash("123456", saltRounds);
@@ -85,7 +85,7 @@ module.exports = (sequelize, Sequelize) => {
                 leverage: 1,                                 /////////////////////////
                 allow: "Allow"
             })
-        }
+        // }
     };
 
     return User;

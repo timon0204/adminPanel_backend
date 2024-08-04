@@ -12,6 +12,7 @@ const adminRouter = require("./routes/adminRouter")
 const loaders = require("./loaders");
 const getRealtimeData = require("./getFetchData");
 const {Symbols} = require("./models");
+const global = require('./config/global');
 
 const app = express();
 const server = http.createServer(app);
@@ -52,8 +53,8 @@ const startServer = async () => {
         logger("info", "Server", `Server is started on ${config.port} port`);
     });
 
-    const symbols = await Symbols.findAll({attributes: ['code']});
-
+    const symbols = await Symbols.findAll();
+    global.symbols = symbols.map(item => item.code);
     getRealtimeData(symbols);
 
 }

@@ -23,8 +23,8 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
                 defaultValue: 0
             },
-            symbolID: {
-                type: Sequelize.ENUM("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF"),                     
+            symbol: {
+                type: Sequelize.STRING,                     
                 allowNull: false,
             },
             startPrice: {
