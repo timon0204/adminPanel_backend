@@ -23,7 +23,7 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
                 defaultValue: 0
             },
-            symbol: {
+            symbolID: {
                 type: Sequelize.ENUM("EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF"),                     
                 allowNull: false,
             },
@@ -41,6 +41,30 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.DOUBLE(20, 6),
                 allowNull: true,
                 defaultValue: 0
+            },
+            stopPrice: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: true
+            },
+            stopLoss: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: true,
+            },
+            commission: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: false,
+            },
+            realProfit: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: true,
+            },
+            status: {
+                type: Sequelize.ENUM("Open", "Close"),
+                allowNull: false,
+            },
+            closeReason: {
+                type: Sequelize.ENUM("TakeProfit", "StopLoss", "UserClose", "None"),
+                allowNull: true
             }
         },
         {

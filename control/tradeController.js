@@ -1,19 +1,23 @@
-const { Positions, RealPositions, User } = require("../models");
+const { Positions, RealPositions, User, Symbols } = require("../models");
 const global = require("../config/global");
 const { where } = require("sequelize");
+const symbols = require("../models/symbols");
 
-const Symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF']
-const leverage = 1, pip_size = 0.0001, commission = 0.03, fee = 0.03;               //////getUserInfo from data
+// const Symbols = ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF']
+// const leverage = 1, pip_size = 0.0001, commission = 0.03;               //////getUserInfo from data
 
 exports.createPosition = async (req, res) => {
     console.log("data : ", req.body);
-
     const { amount, symbol, option } = req.body;
 
     const user = await User.findOne({ where: { token: req.headers.authorization } })
+    const leverage = user.leverage;
+    const commission = user.commission;
     const { balance, margin } = user;
-
-    const updateMargin = (margin + amount / pip_size * (option ? global.bids[Symbols.indexOf(symbol)] : global.asks[Symbols.indexOf(symbol)])).toFixed(2);
+    const symbolIndex = await Symbols.findOne({ where: { code: symbol } });
+    const pip_size = symbolIndex.pip_size;
+    const symbolID = symbolIndex.id;
+    const updateMargin = (margin + amount / pip_size * (option ? global.bids[symbolID] : global.asks[symbolID])).toFixed(2);
 
     console.log(balance, ",", margin, ",", updateMargin);
     if (updateMargin + commission > balance) {
@@ -24,8 +28,9 @@ exports.createPosition = async (req, res) => {
         userID: user.id,
         type: option ? "Sell" : "Buy",
         size: amount,
-        symbol: symbol,
-        startPrice: option ? global.bids[Symbols.indexOf(symbol)] : global.asks[Symbols.indexOf(symbol)],
+        status: 'Open',
+        symbolID: symbolID,
+        startPrice: option ? global.bids[symbolID] : global.asks[symbolID],
     });
 
     await User.update({ balance: balance, margin: updateMargin }, { where: { id: user.id } });
@@ -38,8 +43,10 @@ exports.closePosition = async (req, res) => {
     console.log("cacelID : ", req.body);
 
     const { id } = req.body;
-    const closePosition = await Positions.findOne({ where: { id: id } });
+    const closePosition = await Positions.findOne({ where: { id: id, status: 'Open' } });
     const user = await User.findOne({ where: { token: req.headers.authorization } })
+    const leverage = user.leverage;
+    const commission = user.commission;
     const { balance, margin } = user;
 
     const updateMargin = margin - (closePosition.size / pip_size * closePosition.startPrice).toFixed(2);
@@ -53,18 +60,20 @@ exports.closePosition = async (req, res) => {
             id: id
         }
     });
-
-    const stopPrice = closePosition.type == "Sell" ? global.bids[Symbols.indexOf(closePosition.symbol)] : global.asks[Symbols.indexOf(closePosition.symbol)];
+    const symbolIndex = await Symbols.findOne({ where: { id: closePosition.symbolID } });
+    const pip_size = symbolIndex.pip_size;
+    const stopPrice = closePosition.type == "Sell" ? global.bids[closePosition.symbolID] : global.asks[closePosition.symbolID];
     const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / pip_size * closePosition.size - commission;
     const updateBalance = balance + profit;
 
-    await RealPositions.create({
+    await Positions.create({
         positionID: closePosition.id,
         userID: closePosition.userID,
         type: closePosition.type,
         size: closePosition.size,
         symbol: closePosition.symbol,
         startPrice: closePosition.startPrice,
+        status: "Close",
         stopPrice: stopPrice,
         stopLoss: closePosition.stopLoss,
         takeProfit: closePosition.takeProfit,
@@ -74,15 +83,17 @@ exports.closePosition = async (req, res) => {
     });
     await User.update({ margin: updateMargin, balance: updateBalance }, { where: { id: user.id } });
 
-    const PositionList = await Positions.findAll();
-    const RealPositionList = await RealPositions.findAll();
+    const PositionList = await Positions.findAll({ where: { status: 'Open' } });
+    const RealPositionList = await Positions.findAll({ where: { status: 'Close' } });
     res.status(200).json({ positions: PositionList, leverage: leverage, realPositions: RealPositionList, margin: updateMargin, balance: balance });
 };
 
 exports.checkPosition = async () => {
-    const PositionList = await Positions.findAll();
+    const PositionList = await Positions.findAll({ where: { status: 'Open' } });
+    const symbolIndex = await Symbols.findOne({ where: { id: closePosition.symbolID } });
+    const pip_size = symbolIndex.pip_size;
     for (const position of PositionList) {
-        const stopPrice = position.type == "Sell" ? global.bids[Symbols.indexOf(position.symbol)] : global.asks[Symbols.indexOf(position.symbol)];
+        const stopPrice = position.type == "Sell" ? global.bids[position.symbolID] : global.asks[position.symbolID];
         const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
         // console.log(stopPrice, " profit : ", profit, "takeProfit : ", position.takeProfit, "stopLoss : ", position.stopLoss)
@@ -94,12 +105,12 @@ exports.checkPosition = async () => {
 
             const destroyPosition = await Positions.destroy({ where: { id: position.id } });
             if (destroyPosition) {
-                await RealPositions.create({
+                await Positions.create({
                     positionID: position.id,
                     userID: position.userID,
                     type: position.type,
                     size: position.size,
-                    symbol: position.symbol,
+                    symbolID: position.symbolID,
                     startPrice: position.startPrice,
                     stopPrice: stopPrice,
                     stopLoss: position.stopLoss,
@@ -124,7 +135,7 @@ exports.checkPosition = async () => {
                     userID: position.userID,
                     type: position.type,
                     size: position.size,
-                    symbol: position.symbol,
+                    symbolID: position.symbolID,
                     startPrice: position.startPrice,
                     stopPrice: stopPrice,
                     stopLoss: position.stopLoss,
@@ -141,8 +152,9 @@ exports.checkPosition = async () => {
 
 exports.getAllPosition = async (req, res) => {
     const user = await User.findOne({ where: { token: req.headers.authorization } })
-    const PositionList = await Positions.findAll();
-    const RealPositionList = await RealPositions.findAll();
+    const leverage = user.leverage;
+    const PositionList = await Positions.findAll({ where: { status: "Open" } });
+    const RealPositionList = await Positions.findAll({ where: { status: "Close" } });
 
     res.status(200).json({ positions: PositionList, leverage: leverage, realPositions: RealPositionList, margin: user.margin, balance: user.balance });
 }
@@ -152,7 +164,18 @@ exports.updatePosition = async (req, res) => {
 
     await Positions.update({ takeProfit: Number(updateProfit), stopLoss: Number(updateLoss) }, { where: { id: updateID } })
 
-    const PositionList = await Positions.findAll();
+    const PositionList = await Positions.findAll({ where: { status: "Open" } });
 
-    res.status(200).json({ positions: PositionList, leverage: leverage });
+    res.status(200).json({ positions: PositionList});
+}
+
+exports.getSymbols = async (req, res) => {
+    const symbols = await Symbols.findAll({ attributes: ['code', 'name', 'type', 'pip_size'] });
+    return res.status(200).json(symbols);
+}
+
+exports.getTradingDatas = async (req, res) => {
+    const user = await User.findOne({where: {token: req.headers.authorization}});
+    console.log("this is the leverage and commition,", user.leverage, user.commission)
+    return res.status(200).json({leverage: user.leverage, commission: user.commission});
 }

@@ -16,5 +16,7 @@ router.post("/createPosition", authmiddleware, tradeControl.createPosition);
 router.post("/cancelPosition", authmiddleware, tradeControl.closePosition);
 router.post("/getAllPositions", authmiddleware, tradeControl.getAllPosition);
 router.post("/updatePosition", authmiddleware, tradeControl.updatePosition);
+router.get("/getSymbols", authmiddleware, tradeControl.getSymbols);
+router.get("/getTradingDatas", authmiddleware, tradeControl.getTradingDatas);
 
 module.exports = router;
