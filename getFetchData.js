@@ -26,7 +26,6 @@ var getRealtimeData = function (symbols) {
                     return;
                 }
                 if (event.data !== "Connected") {
-                    console.log(event.data);
                     const data = JSON.parse(event.data);
                     global.bids[Symbols.indexOf(data.symbol)] = data.bid;
                     global.asks[Symbols.indexOf(data.symbol)] = data.ask;

@@ -61,3 +61,6 @@
 2024-08-05 01:18:03 [32minfo[39m" [ Database ]: Database (trading) creating...
 2024-08-05 01:18:03 [33mwarn[39m" [ Database ]: Database already exists. (trading)
 2024-08-05 01:18:03 [32minfo[39m" [ Server ]: Server is started on 8000 port
+2024-08-05 01:18:11 [32minfo[39m" [ Database ]: Database (trading) creating...
+2024-08-05 01:18:11 [33mwarn[39m" [ Database ]: Database already exists. (trading)
+2024-08-05 01:18:11 [32minfo[39m" [ Server ]: Server is started on 8000 port
