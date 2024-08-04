@@ -5,7 +5,7 @@ module.exports = {
     port: process.env.PORT || 8000,
 
     database: {
-        type: process.env.DB_TYPE || "main",
+        type: process.env.DB_TYPE || "mysql",
         host: process.env.DB_HOST || "127.0.0.1",
         name: process.env.DB_NAME || "trading",
         user: process.env.DB_USER || "root",
