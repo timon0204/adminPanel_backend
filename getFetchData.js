@@ -5,20 +5,21 @@ const { checkPosition } = require("./control/tradeController")
 var reconnectInterval = 1000
 
 var getRealtimeData = function (symbols) {
-    if(symbols.length ) {
+    try {
         const Symbols = symbols.map((index) => index.code)
         const syms = Symbols.join(",");
+        console.log(syms);
         const ws = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-    
+
         ws.on('open', function open() {
-            ws.send(`{"userKey":"sio3aaPYVIHFBnMMLnBww", "symbol":"${syms}"}`);;
+            ws.send(`{"userKey":"wsidCrWyEJPCbxqcQqnQ", "symbol":"${syms}"}`);;
         });
-    
+
         ws.on('close', function () {
             console.log('socket close : will reconnect in ' + reconnectInterval);
             setTimeout(getRealtimeData, reconnectInterval)
         });
-    
+
         ws.onmessage = (event) => {
             try {
                 if (event.data === "User Key Used to many times") {
@@ -35,7 +36,10 @@ var getRealtimeData = function (symbols) {
                 console.error('Error parsing WebSocket message:', error);
             }
         };
+    } catch (error) {
+        console.log(`Error | GetFetchData | ${error}`)
     }
+
 };
 
 module.exports = getRealtimeData;
