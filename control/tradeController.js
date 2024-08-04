@@ -90,9 +90,9 @@ exports.closePosition = async (req, res) => {
 
 exports.checkPosition = async () => {
     const PositionList = await Positions.findAll({ where: { status: 'Open' } });
-    const symbolIndex = await Symbols.findOne({ where: { id: closePosition.symbolID } });
-    const pip_size = symbolIndex.pip_size;
     for (const position of PositionList) {
+        const symbolIndex = await Symbols.findOne({ where: { id: position.symbolID } });
+        const pip_size = symbolIndex.pip_size;
         const stopPrice = position.type == "Sell" ? global.bids[position.symbolID] : global.asks[position.symbolID];
         const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
