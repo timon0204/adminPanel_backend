@@ -57,10 +57,6 @@ module.exports = (sequelize, Sequelize) => {
                 alllowNull: false,
                 defaultValue: 0,
             },
-            commission: {
-                type: Sequelize.DOUBLE(20, 6),
-                allowNull: false
-            },
             role: {
                 type: Sequelize.STRING,
                 alllowNull: false
@@ -89,7 +85,6 @@ module.exports = (sequelize, Sequelize) => {
                 leverage: 1,                                  /////////////////////////
                 allow: "Allow",
                 role: "admin",
-                commission: 0.03,
             })
         // }
     };

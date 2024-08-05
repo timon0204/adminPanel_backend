@@ -111,9 +111,9 @@ exports.updateSymbol = async (req, res) => {
 
 exports.createSymbol = async (req, res) => {
     try {
-        const { name, type, code, assetName } = req.body;
+        const { name, type, code, assetName, commission } = req.body;
         const createdAt = Date.now();
-        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt });
+        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt, commission: commission });
         symbol.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {

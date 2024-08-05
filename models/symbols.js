@@ -25,6 +25,10 @@ module.exports = (sequelize, Sequelize) => {
             assetName : {
                 type: Sequelize.STRING,
                 allowNull: false,
+            },
+            comission: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: false
             }
         },
         {
