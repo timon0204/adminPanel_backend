@@ -64,7 +64,7 @@ exports.closePosition = async (req, res) => {
     const symbolIndex = await Symbols.findOne({ where: { code: closePosition.symbol } });
     const pip_size = symbolIndex.pip_size;
     const updateMargin = margin - (closePosition.size / symbolIndex.pip_size * closePosition.startPrice).toFixed(2);
-    const stopPrice = closePosition.type == "Sell" ? global.bids[symbolIndex.id] : global.asks[symbolIndex.id];
+    const stopPrice = closePosition.type == "Sell" ? global.bids[global.symbols.indexOf(closePosition.symbol)] : global.asks[global.symbols.indexOf(closePosition.symbol)];
     const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / symbolIndex.pip_size * closePosition.size - commission;
     const updateBalance = balance + profit;
 
@@ -96,7 +96,7 @@ exports.checkPosition = async () => {
     for (const position of PositionList) {
         const symbolIndex = await Symbols.findOne({ where: { code: position.symbol } });
         const pip_size = symbolIndex.pip_size;
-        const stopPrice = position.type == "Sell" ? global.bids[symbolIndex.id] : global.asks[symbolIndex.id];
+        const stopPrice = position.type == "Sell" ? global.bids[global.symbols.indexOf(position.symbol)] : global.asks[global.symbols.indexOf(position.symbol)];
         const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - position.commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
         // console.log(stopPrice, " profit : ", profit, "takeProfit : ", position.takeProfit, "stopLoss : ", position.stopLoss)
