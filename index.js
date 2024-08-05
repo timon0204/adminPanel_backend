@@ -53,7 +53,7 @@ const startServer = async () => {
         logger("info", "Server", `Server is started on ${config.port} port`);
     });
 
-    const symbols = await Symbols.findAll();
+    const symbols = await Symbols.findAll({attributes: ['code']});
     global.symbols = symbols.map(item => item.code);
     getRealtimeData(symbols);
 

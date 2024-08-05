@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { where } = require('sequelize');
-const { User, Positions, Symbols } = require("../models");
+const { User, Positions, Symbols, Assets } = require("../models");
 const jwt = require('jsonwebtoken');
 const { json } = require('body-parser');
 const symbols = require('../models/symbols');
@@ -89,17 +89,20 @@ exports.deleteUser = async (req, res) => {
 exports.getSymbols = async (req, res) => {
     try {
         const symbols = await Symbols.findAll();
-        return res.status(200).send({ symbols: symbols });
+        const assets = await Assets.findAll({attributes: ['name']});
+        const assetNames = assets.map(item => item.name);
+        return res.status(200).send({ symbols: symbols, assetNames: assetNames });
     } catch (err) {
+        console.log(err)
         return res.status(500).send({ message: 'An error occurred while fetching symbols' });
     }
 }
 
-exports.editSymbol = async (req, res) => {
+exports.updateSymbol = async (req, res) => {
     try {
-        const { name, type, code, pip_size, symbolId } = req.body;
+        const { name, type, code, assetName, symbolId } = req.body;
         const updatedAt = Date.now();
-        const symbol = await Symbols.update({ name: name, type: type, code: code, pip_size: pip_size, updatedAt: updatedAt }, { where: { id: symbolId } });
+        const symbol = await Symbols.update({ name: name, type: type, code: code, assetName: assetName, updatedAt: updatedAt }, { where: { id: symbolId } });
         return res.status(200).send({ message: "Edit symbol successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing symbol" });
@@ -108,9 +111,9 @@ exports.editSymbol = async (req, res) => {
 
 exports.createSymbol = async (req, res) => {
     try {
-        const { name, type, code, pip_size } = req.body;
+        const { name, type, code, assetName } = req.body;
         const createdAt = Date.now();
-        const symbol = await Symbols.create({ name: name, type: type, code: code, pip_size: pip_size, createdAt: createdAt });
+        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt });
         symbol.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
@@ -121,12 +124,57 @@ exports.createSymbol = async (req, res) => {
 exports.deleteSymbol = async (req, res) => {
     try {
         const { symbolId } = req.body;
-        console.log("this is a symbolID", symbolId)
         const symbol = await Symbols.findOne({ where: { id: symbolId } });
         if (!symbol) {
             return res.status(404).send({ message: 'Cannot find the user' });
         }
         await Symbols.destroy({ where: { id: symbolId } });
+        return res.status(200).send({ message: "Successfully deleted" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occurred while deleting symbol" });
+    }
+}
+
+exports.getAssets = async (req, res) => {
+    try {
+        const assets = await Assets.findAll();
+        return res.status(200).send({ assets: assets });
+    } catch (err) {
+        return res.status(500).send({ message: 'An error occurred while fetching Assets' });
+    }
+}
+
+exports.updateAsset = async (req, res) => {
+    try {
+        const { name, pip_size, status, assetId } = req.body;
+        const updatedAt = Date.now();
+        await Assets.update({ name: name, pip_size: pip_size, status: status, updatedAt: updatedAt }, { where: { id: assetId } });
+        return res.status(200).send({ message: "Edit symbol successfully" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occured while editing Assets" });
+    }
+}
+
+exports.createAsset = async (req, res) => {
+    try {
+        const { name, pip_size, status } = req.body;
+        const createdAt = Date.now();
+        const asset = await Assets.create({ name: name, pip_size: pip_size, status: status, createdAt: createdAt });
+        // asset.save();
+        return res.status(200).send({ message: 'Create symbol successfully' })
+    } catch (err) {
+        return res.status(500).send({ message: 'An error occured while creating Assets',err })
+    }
+}
+
+exports.deleteAsset = async (req, res) => {
+    try {
+        const { assetId } = req.body;
+        const asset = await Assets.findOne({ where: { id: assetId } });
+        if (!asset) {
+            return res.status(404).send({ message: 'Cannot find the user' });
+        }
+        await Assets.destroy({ where: { id: assetId } });
         return res.status(200).send({ message: "Successfully deleted" });
     } catch (err) {
         return res.status(500).send({ message: "An error occurred while deleting symbol" });

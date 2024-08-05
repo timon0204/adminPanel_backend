@@ -1,4 +1,4 @@
-const { Positions, RealPositions, User, Symbols } = require("../models");
+const { Positions, RealPositions, User, Symbols, Assets } = require("../models");
 const global = require("../config/global");
 const { where } = require("sequelize");
 const symbols = require("../models/symbols");
@@ -173,7 +173,11 @@ exports.updatePosition = async (req, res) => {
 }
 
 exports.getSymbols = async (req, res) => {
-    const symbols = await Symbols.findAll({ attributes: ['code', 'name', 'type', 'pip_size'] });
+    const symbols = await Symbols.findAll({ attributes: ['code', 'name', 'type', 'assetName'] });
+    for(const symbol of symbols) {
+        const asset = await Assets.findOne({where : { name : symbol.assetName}})
+        symbol.pip_size = asset.pip_size;
+    }
     return res.status(200).json(symbols);
 }
 

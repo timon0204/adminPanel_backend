@@ -23,6 +23,7 @@ db.User = require("./user")(sequelize, Sequelize);
 db.Positions = require("./positions")(sequelize, Sequelize);
 db.RealPositions = require("./real_positions")(sequelize, Sequelize);
 db.Symbols = require("./symbols")(sequelize, Sequelize);
+db.Assets = require("./assets")(sequelize, Sequelize);
 
 db.sync = async () => {
     await db.sequelize.sync();
@@ -33,10 +34,11 @@ db.sync = async () => {
         }
     });
 
-    await db["User"].migrate();
+    // await db["User"].migrate();
     await db["Positions"].migrate();
     // await db["RealPositions"].migrate();
     // await db['Symbols'].migrate();
+    // await db['Assets'].migrate();
 };
 
 module.exports = db

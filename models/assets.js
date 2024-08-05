@@ -2,8 +2,8 @@ const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, Sequelize) => {
-    const Symbols = sequelize.define(
-        "Symbols",
+    const Assets = sequelize.define(
+        "Assets",
         {
             id: {
                 type: Sequelize.INTEGER,
@@ -14,28 +14,24 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            type: {
-                type: Sequelize.STRING,
+            pip_size: {
+                type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
-            code: {
-                type: Sequelize.STRING,
+            status: {
+                type: Sequelize.ENUM("Open", "Closed"),
                 allowNull: false,
             },
-            assetName : {
-                type: Sequelize.STRING,
-                allowNull: false,
-            }
         },
         {
-            tableName: "symbol",
+            tableName: "assets",
             freezeTableName: true,
             timestamps: true,
         }
     );
 
-    Symbols.migrate = async () => {
-        await Symbols.destroy({ truncate: true });
+    Assets.migrate = async () => {
+        await Assets.destroy({ truncate: true });
         // await Symbols.create({
         //     name: "EUR to USD",
         //     type: "FX:EURUSD",
@@ -50,5 +46,5 @@ module.exports = (sequelize, Sequelize) => {
         // });
     }
 
-    return Symbols;
+    return Assets;
 }
