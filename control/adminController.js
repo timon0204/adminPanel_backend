@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.findAll();
+        const users = await User.findAll({where : {role : "user"}});
         return res.status(200).send({ users: users });
     } catch (error) {
         return res.status(500).send({ message: "An error occurred while fetching users." });

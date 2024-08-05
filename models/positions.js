@@ -49,6 +49,7 @@ module.exports = (sequelize, Sequelize) => {
             stopLoss: {
                 type: Sequelize.DOUBLE(20, 6),
                 allowNull: true,
+                defaultValue: 0,
             },
             commission: {
                 type: Sequelize.DOUBLE(20, 6),
