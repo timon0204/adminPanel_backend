@@ -12,7 +12,7 @@ var getRealtimeData = function (symbols) {
         const ws = new WebSocket('wss://marketdata.tradermade.com/feedadv');
 
         ws.on('open', function open() {
-            ws.send(`{"userKey":"wsidCrWyEJPCbxqcQqnQ", "symbol":"${syms}"}`);;
+            ws.send(`{"userKey":"sioLadJHwp8g06QCSQSAg", "symbol":"${syms}"}`);;
         });
 
         ws.on('close', function () {

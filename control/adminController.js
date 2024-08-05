@@ -41,14 +41,14 @@ exports.getUsers = async (req, res) => {
 }
 
 exports.createUser = async (req, res) => {
-        try {
+    try {
         const { userName, email, leverage, balance, margin, server, commission } = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
         const user = await User.create({ userName: userName, email: email, password: hashedPassword, balance: balance, leverage: leverage, margin: margin, server: server, commission: commission, allow: "Allow", role: "user", createdAt: createdAt });
         user.save();
-        return res.status(200).send({message: "created successfully", newOne:user});
+        return res.status(200).send({ message: "created successfully", newOne: user });
     } catch (err) {
         return res.status(500).send({ message: "An error occurred while creating user" });
     }
@@ -58,10 +58,15 @@ exports.updateUser = async (req, res) => {
     try {
         const { userId, userName, email, password, leverage, balance, server, allow, commission } = req.body;
         const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        let hashedPassword = '';
+        if (password.length) {
+            hashedPassword = await bcrypt.hash(password, saltRounds);
+        } else {
+            hashedPassword = await bcrypt.hash("123456", saltRounds);
+        }
         const updatedAt = Date.now();
         const user = await User.update({ userName: userName, email: email, password: hashedPassword, leverage: leverage, balance: balance, server: server, allow: allow, commission: commission, updatedAt: updatedAt }, { where: { id: userId } });
-        return res.status(200).send({message: "Updating successfully", updatedOne:user});
+        return res.status(200).send({ message: "Updating successfully", updatedOne: user });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating user" });
     }
@@ -91,40 +96,40 @@ exports.getSymbols = async (req, res) => {
 }
 
 exports.editSymbol = async (req, res) => {
-    try{
-        const {name, type, code, pip_size, symbolId} = req.body;
+    try {
+        const { name, type, code, pip_size, symbolId } = req.body;
         const updatedAt = Date.now();
         const symbol = await Symbols.update({ name: name, type: type, code: code, pip_size: pip_size, updatedAt: updatedAt }, { where: { id: symbolId } });
-        return res.status(200).send({message: "Edit symbol successfully"});
+        return res.status(200).send({ message: "Edit symbol successfully" });
     } catch (err) {
-        return res.status(500).send({message: "An error occured while editing symbol"});
+        return res.status(500).send({ message: "An error occured while editing symbol" });
     }
-}  
+}
 
 exports.createSymbol = async (req, res) => {
     try {
-        const {name, type, code, pip_size} = req.body;
+        const { name, type, code, pip_size } = req.body;
         const createdAt = Date.now();
         const symbol = await Symbols.create({ name: name, type: type, code: code, pip_size: pip_size, createdAt: createdAt });
         symbol.save();
-        return res.status(200).send({message: 'Create symbol successfully'})
+        return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
-        return res.status(500).send({message: 'An error occured while creating symbol'})
+        return res.status(500).send({ message: 'An error occured while creating symbol' })
     }
 }
 
 exports.deleteSymbol = async (req, res) => {
-    try{
-        const {symbolId} = req.body;
+    try {
+        const { symbolId } = req.body;
         console.log("this is a symbolID", symbolId)
-        const symbol = await Symbols.findOne({where: {id: symbolId}});
+        const symbol = await Symbols.findOne({ where: { id: symbolId } });
         if (!symbol) {
             return res.status(404).send({ message: 'Cannot find the user' });
         }
         await Symbols.destroy({ where: { id: symbolId } });
         return res.status(200).send({ message: "Successfully deleted" });
     } catch (err) {
-        return res.status(500).send({message: "An error occurred while deleting symbol"});
+        return res.status(500).send({ message: "An error occurred while deleting symbol" });
     }
 }
 

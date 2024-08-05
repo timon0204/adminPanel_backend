@@ -55,6 +55,7 @@ module.exports = (sequelize, Sequelize) => {
             totalProfit: {
                 type: Sequelize.STRING,
                 alllowNull: false,
+                defaultValue: 0,
             },
             commission: {
                 type: Sequelize.DOUBLE(20, 6),
