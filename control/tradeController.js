@@ -15,10 +15,12 @@ exports.createPosition = async (req, res) => {
     const commission = user.commission;
     const { balance, margin } = user;
     const symbolIndex = await Symbols.findOne({ where: { code: symbol } });
-    const pip_size = symbolIndex.pip_size;
+
+    const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
+    const pip_size = asset.pip_size;
     const symbolID = symbolIndex.id;
     const updateMargin = (margin + amount / pip_size * (option ? global.bids[global.symbols.indexOf(symbol)] : global.asks[global.symbols.indexOf(symbol)])).toFixed(2);
-
+    console.log(margin, amount, pip_size, (option ? global.bids[global.symbols.indexOf(symbol)] : global.asks[global.symbols.indexOf(symbol)]));
     console.log(updateMargin + commission, ",", balance, ",", Number(updateMargin) + Number(commission) > Number(balance));
     if (Number(updateMargin) + Number(commission) > balance) {
         console.log('here');
@@ -62,10 +64,11 @@ exports.closePosition = async (req, res) => {
         }
     });
     const symbolIndex = await Symbols.findOne({ where: { code: closePosition.symbol } });
-    const pip_size = symbolIndex.pip_size;
-    const updateMargin = margin - (closePosition.size / symbolIndex.pip_size * closePosition.startPrice).toFixed(2);
+    const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
+    const pip_size = asset.pip_size;
+    const updateMargin = margin - (closePosition.size / pip_size * closePosition.startPrice).toFixed(2);
     const stopPrice = closePosition.type == "Sell" ? global.bids[global.symbols.indexOf(closePosition.symbol)] : global.asks[global.symbols.indexOf(closePosition.symbol)];
-    const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / symbolIndex.pip_size * closePosition.size - commission;
+    const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / pip_size * closePosition.size - commission;
     const updateBalance = balance + profit;
 
     await Positions.create({
@@ -95,7 +98,8 @@ exports.checkPosition = async () => {
 
     for (const position of PositionList) {
         const symbolIndex = await Symbols.findOne({ where: { code: position.symbol } });
-        const pip_size = symbolIndex.pip_size;
+        const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
+        const pip_size = asset.pip_size;
         const stopPrice = position.type == "Sell" ? global.bids[global.symbols.indexOf(position.symbol)] : global.asks[global.symbols.indexOf(position.symbol)];
         const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size - position.commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
@@ -173,13 +177,28 @@ exports.updatePosition = async (req, res) => {
 }
 
 exports.getSymbols = async (req, res) => {
-    const symbols = await Symbols.findAll({ attributes: ['code', 'name', 'type', 'assetName'] });
-    for(const symbol of symbols) {
-        const asset = await Assets.findOne({where : { name : symbol.assetName}})
-        symbol.pip_size = asset.pip_size;
+    try {
+        const symbols = await Symbols.findAll({ attributes: ['code', 'name', 'type', 'assetName'] });
+
+        // Use map to create an array of promises
+        const new_symbols = await Promise.all(symbols.map(async (symbol) => {
+            const asset = await Assets.findOne({ where: { name: symbol.assetName } });
+            return {
+                code: symbol.code,
+                name: symbol.name,
+                type: symbol.type,
+                assetName: symbol.assetName,
+                pip_size: asset ? asset.pip_size : null // Handle the case where the asset is not found
+            };
+        }));
+
+        return res.status(200).json(new_symbols );
+    } catch (error) {
+        console.error('Error fetching symbols with pip_size:', error);
+        return res.status(500).json({ error: 'An error occurred while fetching symbols.' });
     }
-    return res.status(200).json(symbols);
 }
+
 
 exports.getTradingDatas = async (req, res) => {
     const user = await User.findOne({ where: { token: req.headers.authorization } });
