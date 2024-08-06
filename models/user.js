@@ -21,7 +21,8 @@ module.exports = (sequelize, Sequelize) => {
             },
             companyEmail: {
                 type: Sequelize.STRING,
-                alllowNull: false,
+                allowNull: false,
+                defaultValue: 'admin@gmail.com'
             },
             password: {
                 type: Sequelize.STRING,
@@ -55,6 +56,10 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
                 defaultValue: 0,
             },
+            type : {
+                type: Sequelize.ENUM("Demo", "Live"),
+                allowNull: false,
+            }
         },
         {
             tableName: "users",
@@ -77,6 +82,16 @@ module.exports = (sequelize, Sequelize) => {
                 companyEmail: "admin@gmail.com",
                 password: hashedPassword,
                 allow: "Allow",
+                type: "Demo",
+            })
+            
+            await User.create({
+                email: "test@gmail.com",
+                name: "Admin",
+                companyEmail: "admin@gmail.com",
+                password: hashedPassword,
+                allow: "Allow",
+                type: "Live",
             })
         // }
     };

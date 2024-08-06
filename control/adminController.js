@@ -44,11 +44,17 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, leverage, balance, usedMargin, companyEmail} = req.body;
+        const { name, email, leverage, balance, usedMargin, companyEmail, type} = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", companyEmail: companyEmail,  createdAt: createdAt });
+        const SameUser = await User.findOne({where: {email: email}});
+        if(SameUser) {
+            if(SameUser.type == type) {
+                return res.status(500).send({message: "The user already existed!"})
+            }
+        }
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", companyEmail: companyEmail, type: type,  createdAt: createdAt });
         user.save();
         return res.status(200).send({ message: "created successfully",});
     } catch (err) {
