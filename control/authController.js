@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const secretKey = 'tradeSecretKey';
 
 exports.login = async (req, res) => {
-    const { email, password, server } = req.body;
+    const { email, password} = req.body;
     console.log("this is a lgoin info", req.body)
     const user = await User.findOne({ where: { email: email} });
     if (user) {
