@@ -5,7 +5,7 @@ const { checkPosition } = require("./control/tradeController")
 var reconnectInterval = 1000
 
 var getRealtimeData = function (symbols) {
-    try {
+    // try {
         const Symbols = symbols.map((index) => index.code)
         const syms = Symbols.join(",");
         console.log(syms);
@@ -36,9 +36,9 @@ var getRealtimeData = function (symbols) {
                 console.error('Error parsing WebSocket message:', error);
             }
         };
-    } catch (error) {
-        console.log(`Error | GetFetchData | ${error}`)
-    }
+    // } catch (error) {
+    //     console.log(`Error | GetFetchData | ${error}`)
+    // }
 
 };
 
