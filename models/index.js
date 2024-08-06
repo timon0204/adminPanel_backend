@@ -12,7 +12,7 @@ const sequelize = new Sequelize(config.database.name, config.database.user, conf
         acquire:30000,
         idle: 10000,
     },
-    timezone: "+09:00"
+    timezone: "+03:00"
 });
 
 const db = {}

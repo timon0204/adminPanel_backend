@@ -1,25 +1,35 @@
 const express = require('express');
 const router = express.Router();
-const { authmiddleware } = require('../middleware/authmiddleware');
 const adminControl = require('../control/adminController');
+const { adminmiddleware } = require('../middleware/adminmiddleware');
 
 router.post("/login",adminControl.login);
-router.get("/getUsers", authmiddleware, adminControl.getUsers);
-router.post("/createUser", authmiddleware, adminControl.createUser);
-router.post("/updateUser", authmiddleware, adminControl.updateUser);
-router.post("/deleteUser", authmiddleware, adminControl.deleteUser);
-router.get("/getSymbols", authmiddleware, adminControl.getSymbols);
-router.post("/updateSymbol", authmiddleware, adminControl.updateSymbol);
-router.post("/createSymbol", authmiddleware, adminControl.createSymbol);
-router.post("/deleteSymbol", authmiddleware, adminControl.deleteSymbol)
-router.get("/getAssets", authmiddleware, adminControl.getAssets);
-router.post("/updateAsset", authmiddleware, adminControl.updateAsset);
-router.post("/createAsset", authmiddleware, adminControl.createAsset);
-router.post("/deleteAsset", authmiddleware, adminControl.deleteAsset);
-router.get("/getCompanies", authmiddleware, adminControl.getCompanies);
-router.post("/createCompany", authmiddleware, adminControl.createCompany);
-router.post("/updateCompany", authmiddleware, adminControl.updateCompany);
-router.post("/deleteCompany", authmiddleware, adminControl.deleteCompany);
-router.get("/getPositions", authmiddleware, adminControl.getPositions);
+
+router.get("/getUsers", adminmiddleware, adminControl.getUsers);
+router.post("/createUser", adminmiddleware, adminControl.createUser);
+router.post("/updateUser", adminmiddleware, adminControl.updateUser);
+router.post("/deleteUser", adminmiddleware, adminControl.deleteUser);
+
+router.get("/getSymbols", adminmiddleware, adminControl.getSymbols);
+router.post("/updateSymbol", adminmiddleware, adminControl.updateSymbol);
+router.post("/createSymbol", adminmiddleware, adminControl.createSymbol);
+router.post("/deleteSymbol", adminmiddleware, adminControl.deleteSymbol)
+
+router.get("/getAssets", adminmiddleware, adminControl.getAssets);
+router.post("/updateAsset", adminmiddleware, adminControl.updateAsset);
+router.post("/createAsset", adminmiddleware, adminControl.createAsset);
+router.post("/deleteAsset", adminmiddleware, adminControl.deleteAsset);
+
+router.get("/getCompanies", adminmiddleware, adminControl.getCompanies);
+router.post("/createCompany", adminmiddleware, adminControl.createCompany);
+router.post("/updateCompany", adminmiddleware, adminControl.updateCompany);
+router.post("/deleteCompany", adminmiddleware, adminControl.deleteCompany);
+
+router.get("/getCommissions", adminmiddleware, adminControl.getCommissions);
+router.post("/updateCommission", adminmiddleware, adminControl.updateCommission);
+router.post("/createCommission", adminmiddleware, adminControl.createCommission);
+router.post("/deleteCommission", adminmiddleware, adminControl.deleteCommission);
+
+router.get("/getPositions", adminmiddleware, adminControl.getPositions);
 
 module.exports = router;

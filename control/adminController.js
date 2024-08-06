@@ -160,7 +160,7 @@ exports.createAsset = async (req, res) => {
         const { name, pip_size } = req.body;
         const createdAt = Date.now();
         const asset = await Assets.create({ name: name, pip_size: pip_size, createdAt: createdAt });
-        // asset.save();
+        asset.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
         return res.status(500).send({ message: 'An error occured while creating Assets',err })
@@ -228,7 +228,7 @@ exports.updateCompany = async (req, res) =>{
             hashedPassword = await bcrypt.hash("123456", saltRounds);
         }
         const updatedAt = Date.now();
-        const user = await Company.update({ password: password, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
+        await Company.update({ password: password, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
         return res.status(200).send({ message: "Updating successfully"});
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating company" });
@@ -254,6 +254,43 @@ exports.getCommissions = async (req, res) => {
         const commissions = await Commission.findAll();
         return res.status(200).send({commissions: commissions});
     } catch (err) {
-        return res.status(200).send({message: "An error occurred while fetching companies"})
+        return res.status(200).send({message: "An error occurred while fetching commissions"})
+    }
+}
+
+exports.updateCommission = async (req, res) => {
+    try {
+        const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD, commissionId } = req.body;
+        const updatedAt = Date.now();
+        await Commission.update({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil:Oil, BTCUSD: BTCUSD, updatedAt: updatedAt }, { where: { id: commissionId } });
+        return res.status(200).send({ message: "Edit commission successfully" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occured while editing commission" });
+    }
+}
+
+exports.createCommission = async (req, res) => {
+    try {
+        const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD } = req.body;
+        const createdAt = Date.now();
+        const commission = await Commission.create({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil:Oil, BTCUSD: BTCUSD, createdAt: createdAt });
+        commission.save();
+        return res.status(200).send({ message: 'Create Commission successfully' })
+    } catch (err) {
+        return res.status(500).send({ message: 'An error occured while creating Commission',err })
+    }
+}
+
+exports.deleteCommission = async (req, res) => {
+    try {
+        const { commissionId } = req.body;
+        const commission = await Commission.findOne({ where: { id: commissionId } });
+        if (!commission) {
+            return res.status(404).send({ message: 'Cannot find the user' });
+        }
+        await Commission.destroy({ where: { id: commissionId } });
+        return res.status(200).send({ message: "Successfully deleted" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occurred while deleting commission" });
     }
 }

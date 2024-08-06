@@ -1,6 +1,6 @@
 const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
-const company = require('./company');
+// const company = require('./company');
 
 module.exports = (sequelize, Sequelize) => {
     const User = sequelize.define(

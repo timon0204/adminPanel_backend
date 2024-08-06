@@ -35,7 +35,6 @@ module.exports = (sequelize, Sequelize) => {
     );
 
     Company.migrate = async () => {
-        await Company.destroy({ truncate: true });
        // const count = await Company.count();
 
         // if (!count) {

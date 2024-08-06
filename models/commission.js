@@ -1,6 +1,5 @@
 const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
-const { Company } = require('.');
 
 module.exports = (sequelize, Sequelize) => {
     const Commission = sequelize.define(
