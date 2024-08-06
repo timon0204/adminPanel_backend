@@ -14,11 +14,7 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            Major: {
-                type: Sequelize.DOUBLE(20,6),
-                allowNull: false,
-            },
-            JPYpairs: {
+            Forex: {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
@@ -26,15 +22,11 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
-            Metal: {
+            Crypto: {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
-            Oil: {
-                type: Sequelize.DOUBLE(20,6),
-                allowNull: false,
-            },
-            BTCUSD: {
+            Futures: {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
@@ -50,12 +42,10 @@ module.exports = (sequelize, Sequelize) => {
         await Commission.destroy({ truncate: true });
         await Commission.create({
             companyEmail: "admin@gmail.com",
-            Major: 0.03,
-            JPYpairs: 0.03,
+            Forex: 0.03,
             Indices: 0,
-            Metal: 0.03,
-            Oil: 0.03,
-            BTCUSD: 0.03,
+            Crypto: 0.03,
+            Futures: 0.03,
         });
         // await Commission.destroy({ truncate: true });
     }

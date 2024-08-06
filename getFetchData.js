@@ -5,41 +5,70 @@ const { checkPosition } = require("./control/tradeController")
 var reconnectInterval = 1000
 
 var getRealtimeData = function (symbols) {
-    // try {
-        const Symbols = symbols.map((index) => index.code)
-        const syms = Symbols.join(",");
-        console.log(syms);
-        const ws = new WebSocket('wss://marketdata.tradermade.com/feedadv');
+    try {
+        const Symbols_total = symbols.map((index) => index.code);
+        const Symbols = processArrayInChunks(Symbols_total, 10);
+        const ws0 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
+        getDataWithSocket(ws0, "wsidCrWyEJPCbxqcQqnQ", Symbols[0]);
+        if (Symbols.length > 1) {
+            const ws1 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
+            getDataWithSocket(ws1, "sio3aaPYVIHFBnMMLnBww", Symbols[1]);
+        }
+        if (Symbols.length > 2) {
+            const ws2 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
+            getDataWithSocket(ws2, "wsx87-Jw_pCkochqfjRA", Symbols[2]);
+        }
 
-        ws.on('open', function open() {
-            ws.send(`{"userKey":"sio3aaPYVIHFBnMMLnBww", "symbol":"${syms}"}`);;
-        });
+    } catch (error) {
+        console.log(`Error | GetFetchData | ${error}`)
+    }
 
-        ws.on('close', function () {
-            console.log('socket close : will reconnect in ' + reconnectInterval);
-            setTimeout(getRealtimeData, reconnectInterval)
-        });
+};
 
-        ws.onmessage = (event) => {
-            try {
-                if (event.data === "User Key Used to many times") {
-                    console.log("User Key Used to many times");
-                    return;
-                }
-                if (event.data !== "Connected") {
+const getDataWithSocket = (ws, key, data) => {
+    console.log(data)
+    ws.on('open', function open() {
+        ws.send(`{"userKey":"${key}", "symbol":"${data}"}`);;
+    });
+
+    ws.on('close', function () {
+        console.log('socket close : will reconnect in ' + reconnectInterval);
+        setTimeout(getRealtimeData, reconnectInterval)
+    });
+
+    ws.onmessage = (event) => {
+        try {
+            if (event.data === "User Key Used to many times") {
+                console.log("User Key Used to many times");
+                return;
+            }
+            if (event.data !== "Connected") {
+                try {
                     const data = JSON.parse(event.data);
                     global.bids[Symbols.indexOf(data.symbol)] = data.bid;
                     global.asks[Symbols.indexOf(data.symbol)] = data.ask;
                     checkPosition();
+                } catch (error) {
+                    console.log(event.data);
                 }
-            } catch (error) {
-                console.error('Error parsing WebSocket message:', error);
-            }
-        };
-    // } catch (error) {
-    //     console.log(`Error | GetFetchData | ${error}`)
-    // }
 
+            }
+        } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+        }
+    };
 };
+
+const processArrayInChunks = (arr, chunkSize) => {
+    const result = [];
+
+    for (let i = 0; i < arr.length; i += chunkSize) {
+        const chunk = arr.slice(i, i + chunkSize);
+        result.push(chunk.join(','));
+    }
+
+    return result;
+}
+
 
 module.exports = getRealtimeData;
