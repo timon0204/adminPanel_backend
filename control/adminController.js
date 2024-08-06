@@ -34,7 +34,9 @@ exports.login = async (req, res) => {
 exports.getUsers = async (req, res) => {
     try {
         const users = await User.findAll();
-        return res.status(200).send({ users: users });
+        const company = await Company.findAll({attributes: ['email']});
+        const companyEmail = company.map(item => item.email);
+        return res.status(200).send({ users: users, companyEmail: companyEmail});
     } catch (error) {
         return res.status(500).send({ message: "An error occurred while fetching users." });
     }
@@ -46,10 +48,11 @@ exports.createUser = async (req, res) => {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, commission: commission, allow: "Allow", companyEmail: companyEmail,  createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", companyEmail: companyEmail,  createdAt: createdAt });
         user.save();
         return res.status(200).send({ message: "created successfully",});
     } catch (err) {
+        console.log("this is a err", err);
         return res.status(500).send({ message: "An error occurred while creating user" });
     }
 }
@@ -261,7 +264,8 @@ exports.getCommissions = async (req, res) => {
 exports.updateCommission = async (req, res) => {
     try {
         const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD, commissionId } = req.body;
-        const updatedAt = Date.now();
+    console.log("this is the req", BTCUSD);
+    const updatedAt = Date.now();
         await Commission.update({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil:Oil, BTCUSD: BTCUSD, updatedAt: updatedAt }, { where: { id: commissionId } });
         return res.status(200).send({ message: "Edit commission successfully" });
     } catch (err) {

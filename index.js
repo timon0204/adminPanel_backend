@@ -15,10 +15,14 @@ const {Symbols} = require("./models");
 const global = require('./config/global');
 
 const app = express();
+
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
 const server = http.createServer(app);
 
 const startServer = async () => {
-    app.use(express.static(path.join(__dirname, "public")));
+    app.use(express.static(path.join(__dirname, 'public')));
 
     app.use(cors({
         origin: "*"
