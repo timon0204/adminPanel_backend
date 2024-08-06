@@ -29,15 +29,29 @@ module.exports = (sequelize, Sequelize) => {
     Assets.migrate = async () => {
         await Assets.destroy({ truncate: true });
         await Assets.create({
-            name: "Crypto",
+            name: "Major",
             pip_size: 0.0001,
         });
-        // await Symbols.create({
-        //     name: "USD to JPY",
-        //     type: "FX:USDJPY",
-        //     code: "USDJPY",
-        //     pip_size: 0.0001,
-        // });
+        await Assets.create({
+            name: "JPYpairs",
+            pip_size: 0.0001,
+        });
+        await Assets.create({
+            name: "Indices",
+            pip_size: 0.0001,
+        });
+        await Assets.create({
+            name: "Metal",
+            pip_size: 0.0001,
+        });
+        await Assets.create({
+            name: "Oil",
+            pip_size: 0.0001,
+        });
+        await Assets.create({
+            name: "BTCUSD",
+            pip_size: 0.0001,
+        });
     }
 
     return Assets;

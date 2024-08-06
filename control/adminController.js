@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { where } = require('sequelize');
-const { User, Positions, Symbols, Assets, Company } = require("../models");
+const { User, Positions, Symbols, Assets, Company, Commission } = require("../models");
 const jwt = require('jsonwebtoken');
 const { json } = require('body-parser');
 const symbols = require('../models/symbols');
@@ -213,13 +213,13 @@ exports.createCompany = async (req, res) => {
         company.save();
         return res.status(200).send({message: "Company created successfully"});
     } catch (err) {
-        return res.status(200).send({message: "An error occurred while fetching companies"})
+        return res.status(200).send({message: "An error occurred while creating companies"})
     }
 }
 
 exports.updateCompany = async (req, res) =>{
     try {
-        const { companyId, email, password, leverage, balance, allow, usedMargin, companyEmail } = req.body;
+        const { companyId, email, password, role} = req.body;
         const saltRounds = 10;
         let hashedPassword = '';
         if (password.length) {
@@ -228,9 +228,32 @@ exports.updateCompany = async (req, res) =>{
             hashedPassword = await bcrypt.hash("123456", saltRounds);
         }
         const updatedAt = Date.now();
-        const user = await User.update({ name: name, email: email, password: hashedPassword, leverage: leverage, balance: balance, usedMargin: usedMargin, allow: allow, companyEmail: companyEmail, updatedAt: updatedAt }, { where: { id: userId } });
-        return res.status(200).send({ message: "Updating successfully", updatedOne: user });
+        const user = await Company.update({ password: password, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
+        return res.status(200).send({ message: "Updating successfully"});
     } catch (err) {
-        return res.status(500).send({ message: "An error occured while updating user" });
+        return res.status(500).send({ message: "An error occured while updating company" });
+    }
+}
+
+exports.deleteCompany = async (req, res) => {
+    try {
+        const { companyId } = req.body;
+        const company = await Assets.findOne({ where: { id: companyId } });
+        if (!company) {
+            return res.status(404).send({ message: 'Cannot find the company' });
+        }
+        await Company.destroy({ where: { id: companyId } });
+        return res.status(200).send({ message: "Successfully deleted" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occurred while deleting company" });
+    }
+}
+
+exports.getCommissions = async (req, res) => {
+    try {
+        const commissions = await Commission.findAll();
+        return res.status(200).send({commissions: commissions});
+    } catch (err) {
+        return res.status(200).send({message: "An error occurred while fetching companies"})
     }
 }

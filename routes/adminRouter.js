@@ -16,6 +16,10 @@ router.get("/getAssets", authmiddleware, adminControl.getAssets);
 router.post("/updateAsset", authmiddleware, adminControl.updateAsset);
 router.post("/createAsset", authmiddleware, adminControl.createAsset);
 router.post("/deleteAsset", authmiddleware, adminControl.deleteAsset);
+router.get("/getCompanies", authmiddleware, adminControl.getCompanies);
+router.post("/createCompany", authmiddleware, adminControl.createCompany);
+router.post("/updateCompany", authmiddleware, adminControl.updateCompany);
+router.post("/deleteCompany", authmiddleware, adminControl.deleteCompany);
 router.get("/getPositions", authmiddleware, adminControl.getPositions);
 
 module.exports = router;

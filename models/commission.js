@@ -48,6 +48,16 @@ module.exports = (sequelize, Sequelize) => {
     );
 
     Commission.migrate = async () => {
+        await Commission.destroy({ truncate: true });
+        await Commission.create({
+            companyEmail: "admin@gmail.com",
+            Major: 0.03,
+            JPYpairs: 0.03,
+            Indices: 0,
+            Metal: 0.03,
+            Oil: 0.03,
+            BTCUSD: 0.03,
+        });
         // await Commission.destroy({ truncate: true });
     }
 

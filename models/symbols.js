@@ -22,8 +22,8 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            assetName : {
-                type: Sequelize.STRING,
+            assetName: {
+                type: Sequelize.ENUM("Major", "JPYpairs", "Indices", "Metal", "Oil", "BTCUSD"),
                 allowNull: false,
             },
         },
@@ -40,14 +40,8 @@ module.exports = (sequelize, Sequelize) => {
             name: "EUR to USD",
             type: "FX:EURUSD",
             code: "EURUSD",
-            assetName: "Crypto",
+            assetName: "Major",
         });
-        // await Symbols.create({
-        //     name: "USD to JPY",
-        //     type: "FX:USDJPY",
-        //     code: "USDJPY",
-        //     pip_size: 0.0001,
-        // });
     }
 
     return Symbols;
