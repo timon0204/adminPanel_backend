@@ -1,5 +1,6 @@
 const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
+const company = require('./company');
 
 module.exports = (sequelize, Sequelize) => {
     const User = sequelize.define(
@@ -10,20 +11,21 @@ module.exports = (sequelize, Sequelize) => {
                 primaryKey: true,
                 autoIncrement: true
             },
-            userName: {
+            name: {
                 type: Sequelize.STRING,
                 allowNull: false,
-                defaultValue: ""
             },
             email: {
                 type: Sequelize.STRING,
                 allowNull: false,
-                defaultValue: ""
+            },
+            companyEmail: {
+                type: Sequelize.STRING,
+                alllowNull: false,
             },
             password: {
                 type: Sequelize.STRING,
                 allowNull: false,
-                defaultValue: ""
             },
             token: {
                 type: Sequelize.STRING,
@@ -39,14 +41,10 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
                 defaultValue: 10000
             },
-            margin: {
+            usedMargin: {
                 type: Sequelize.DOUBLE(20, 2),
                 allowNull: false,
                 defaultValue: 0
-            },
-            server: {
-                type: Sequelize.STRING,
-                allowNull: false,
             },
             allow: {
                 type: Sequelize.ENUM("Allow", "Block"),
@@ -54,13 +52,9 @@ module.exports = (sequelize, Sequelize) => {
             },
             totalProfit: {
                 type: Sequelize.STRING,
-                alllowNull: false,
+                allowNull: false,
                 defaultValue: 0,
             },
-            role: {
-                type: Sequelize.STRING,
-                alllowNull: false
-            }
         },
         {
             tableName: "users",
@@ -78,13 +72,11 @@ module.exports = (sequelize, Sequelize) => {
             const hashedPassword = await bcrypt.hash("123456", saltRounds);
 
             await User.create({
-                email: "admin@gmail.com",
-                userName: "Admin",
+                email: "test@gmail.com",
+                name: "Admin",
+                companyEmail: "admin@gmail.com",
                 password: hashedPassword,
-                server: 'trading',
-                leverage: 1,                                  /////////////////////////
                 allow: "Allow",
-                role: "admin",
             })
         // }
     };

@@ -23,14 +23,22 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
                 defaultValue: 0
             },
-            symbol: {
+            symbolName: {
                 type: Sequelize.STRING,                     
+                allowNull: false,
+            },
+            status: {
+                type: Sequelize.ENUM("Open", "Close"),
                 allowNull: false,
             },
             startPrice: {
                 type: Sequelize.DOUBLE(20, 6),
                 allowNull: false,
                 defaultValue: 1
+            },
+            stopPrice: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: true
             },
             stopLoss: {
                 type: Sequelize.DOUBLE(20, 6),
@@ -42,15 +50,6 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: true,
                 defaultValue: 0
             },
-            stopPrice: {
-                type: Sequelize.DOUBLE(20, 6),
-                allowNull: true
-            },
-            stopLoss: {
-                type: Sequelize.DOUBLE(20, 6),
-                allowNull: true,
-                defaultValue: 0,
-            },
             commission: {
                 type: Sequelize.DOUBLE(20, 6),
                 allowNull: false,
@@ -58,10 +57,6 @@ module.exports = (sequelize, Sequelize) => {
             realProfit: {
                 type: Sequelize.DOUBLE(20, 6),
                 allowNull: true,
-            },
-            status: {
-                type: Sequelize.ENUM("Open", "Close"),
-                allowNull: false,
             },
             closeReason: {
                 type: Sequelize.ENUM("TakeProfit", "StopLoss", "UserClose", "None"),

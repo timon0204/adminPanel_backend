@@ -18,10 +18,6 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
-            status: {
-                type: Sequelize.ENUM("Open", "Closed"),
-                allowNull: false,
-            },
         },
         {
             tableName: "assets",
@@ -32,12 +28,10 @@ module.exports = (sequelize, Sequelize) => {
 
     Assets.migrate = async () => {
         await Assets.destroy({ truncate: true });
-        // await Symbols.create({
-        //     name: "EUR to USD",
-        //     type: "FX:EURUSD",
-        //     code: "EURUSD",
-        //     pip_size: 0.0001,
-        // });
+        await Assets.create({
+            name: "Crypto",
+            pip_size: 0.0001,
+        });
         // await Symbols.create({
         //     name: "USD to JPY",
         //     type: "FX:USDJPY",

@@ -26,10 +26,6 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            comission: {
-                type: Sequelize.DOUBLE(20, 6),
-                allowNull: false
-            }
         },
         {
             tableName: "symbol",
@@ -40,12 +36,12 @@ module.exports = (sequelize, Sequelize) => {
 
     Symbols.migrate = async () => {
         await Symbols.destroy({ truncate: true });
-        // await Symbols.create({
-        //     name: "EUR to USD",
-        //     type: "FX:EURUSD",
-        //     code: "EURUSD",
-        //     pip_size: 0.0001,
-        // });
+        await Symbols.create({
+            name: "EUR to USD",
+            type: "FX:EURUSD",
+            code: "EURUSD",
+            assetName: "Crypto",
+        });
         // await Symbols.create({
         //     name: "USD to JPY",
         //     type: "FX:USDJPY",

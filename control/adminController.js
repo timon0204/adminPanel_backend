@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { where } = require('sequelize');
-const { User, Positions, Symbols, Assets } = require("../models");
+const { User, Positions, Symbols, Assets, Company } = require("../models");
 const jwt = require('jsonwebtoken');
 const { json } = require('body-parser');
 const symbols = require('../models/symbols');
@@ -9,16 +9,16 @@ const secretKey = 'tradeSecretKey';
 exports.login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await User.findOne({ where: { email: email } });
+        const user = await Company.findOne({ where: { email: email } });
         if (user) {
-            if (user.role != "admin") {
+            if (user.role != "Admin") {
                 return res.status(401).json({ state: false, message: "Invaild User" });
             }
             const result = await bcrypt.compare(password, user.password);
             if (result) {
-                const payload = { userName: user.userName, password: user.password };
+                const payload = { name: user.name, password: user.password };
                 const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-                await User.update({ token: token }, { where: { id: user.id } });
+                await Company.update({ token: token }, { where: { id: user.id } });
                 return res.status(200).json({ state: true, token: token });
             } else {
                 return res.status(401).json({ state: false, message: "Invalid User" });
@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.findAll({where : {role : "user"}});
+        const users = await User.findAll();
         return res.status(200).send({ users: users });
     } catch (error) {
         return res.status(500).send({ message: "An error occurred while fetching users." });
@@ -42,13 +42,13 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { userName, email, leverage, balance, margin, server, commission } = req.body;
+        const { name, email, leverage, balance, usedMargin, companyEmail} = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
-        const user = await User.create({ userName: userName, email: email, password: hashedPassword, balance: balance, leverage: leverage, margin: margin, server: server, commission: commission, allow: "Allow", role: "user", createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, commission: commission, allow: "Allow", companyEmail: companyEmail,  createdAt: createdAt });
         user.save();
-        return res.status(200).send({ message: "created successfully", newOne: user });
+        return res.status(200).send({ message: "created successfully",});
     } catch (err) {
         return res.status(500).send({ message: "An error occurred while creating user" });
     }
@@ -56,7 +56,7 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { userId, userName, email, password, leverage, balance, server, allow, commission } = req.body;
+        const { userId, name, email, password, leverage, balance, allow, usedMargin, companyEmail } = req.body;
         const saltRounds = 10;
         let hashedPassword = '';
         if (password.length) {
@@ -65,7 +65,7 @@ exports.updateUser = async (req, res) => {
             hashedPassword = await bcrypt.hash("123456", saltRounds);
         }
         const updatedAt = Date.now();
-        const user = await User.update({ userName: userName, email: email, password: hashedPassword, leverage: leverage, balance: balance, server: server, allow: allow, commission: commission, updatedAt: updatedAt }, { where: { id: userId } });
+        const user = await User.update({ name: name, email: email, password: hashedPassword, leverage: leverage, balance: balance, usedMargin: usedMargin, allow: allow, companyEmail: companyEmail, updatedAt: updatedAt }, { where: { id: userId } });
         return res.status(200).send({ message: "Updating successfully", updatedOne: user });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating user" });
@@ -111,9 +111,9 @@ exports.updateSymbol = async (req, res) => {
 
 exports.createSymbol = async (req, res) => {
     try {
-        const { name, type, code, assetName, commission } = req.body;
+        const { name, type, code, assetName } = req.body;
         const createdAt = Date.now();
-        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt, commission: commission });
+        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt});
         symbol.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
@@ -146,9 +146,9 @@ exports.getAssets = async (req, res) => {
 
 exports.updateAsset = async (req, res) => {
     try {
-        const { name, pip_size, status, assetId } = req.body;
+        const { name, pip_size, assetId } = req.body;
         const updatedAt = Date.now();
-        await Assets.update({ name: name, pip_size: pip_size, status: status, updatedAt: updatedAt }, { where: { id: assetId } });
+        await Assets.update({ name: name, pip_size: pip_size, updatedAt: updatedAt }, { where: { id: assetId } });
         return res.status(200).send({ message: "Edit symbol successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing Assets" });
@@ -157,9 +157,9 @@ exports.updateAsset = async (req, res) => {
 
 exports.createAsset = async (req, res) => {
     try {
-        const { name, pip_size, status } = req.body;
+        const { name, pip_size } = req.body;
         const createdAt = Date.now();
-        const asset = await Assets.create({ name: name, pip_size: pip_size, status: status, createdAt: createdAt });
+        const asset = await Assets.create({ name: name, pip_size: pip_size, createdAt: createdAt });
         // asset.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
@@ -187,5 +187,50 @@ exports.getPositions = async (req, res) => {
         return res.status(200).send({ positions: positions });
     } catch (err) {
         return res.status(200).send({ message: "An error occurred while fetching postions" });
+    }
+}
+
+exports.getCompanies = async (req, res) => {
+    try {
+        const companies = await Company.findAll();
+        return res.status(200).send({companies: companies});
+    } catch (err) {
+        return res.status(200).send({message: "An error occurred while fetching companies"})
+    }
+}
+
+exports.createCompany = async (req, res) => {
+    try {
+        const {email, password,role} = req.body;
+        let hashedPassword = '';
+        const saltRounds = 10;
+        if(password.length) {
+            hashedPassword = await bcrypt.hash(password, saltRounds);
+        } else {
+            hashedPassword = await bcrypt.hash('123456', saltRounds);
+        }
+        const company = await Company.create({email: email, password: password, role: role});
+        company.save();
+        return res.status(200).send({message: "Company created successfully"});
+    } catch (err) {
+        return res.status(200).send({message: "An error occurred while fetching companies"})
+    }
+}
+
+exports.updateCompany = async (req, res) =>{
+    try {
+        const { companyId, email, password, leverage, balance, allow, usedMargin, companyEmail } = req.body;
+        const saltRounds = 10;
+        let hashedPassword = '';
+        if (password.length) {
+            hashedPassword = await bcrypt.hash(password, saltRounds);
+        } else {
+            hashedPassword = await bcrypt.hash("123456", saltRounds);
+        }
+        const updatedAt = Date.now();
+        const user = await User.update({ name: name, email: email, password: hashedPassword, leverage: leverage, balance: balance, usedMargin: usedMargin, allow: allow, companyEmail: companyEmail, updatedAt: updatedAt }, { where: { id: userId } });
+        return res.status(200).send({ message: "Updating successfully", updatedOne: user });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occured while updating user" });
     }
 }
