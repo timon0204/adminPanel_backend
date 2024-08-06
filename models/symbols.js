@@ -75,7 +75,7 @@ module.exports = (sequelize, Sequelize) => {
         await Symbols.create({
             name: "US30",
             type: "BLACKBULL:US30",
-            code: "US30",
+            code: "USA30",
             assetName: "Indices",
         });
         await Symbols.create({
