@@ -9,14 +9,14 @@ var getRealtimeData = function (symbols) {
         const Symbols_total = symbols.map((index) => index.code);
         const Symbols = processArrayInChunks(Symbols_total, 10);
         const ws0 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-        getDataWithSocket(ws0, "wsidCrWyEJPCbxqcQqnQ", Symbols[0], Symbols_total);
+        getDataWithSocket(ws0, "wsx87-Jw_pCkochqfjRA", Symbols[0], Symbols_total);
         if (Symbols.length > 1) {
             const ws1 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-            getDataWithSocket(ws1, "sio3aaPYVIHFBnMMLnBww", Symbols[1], Symbols_total);
+            getDataWithSocket(ws1, "sio76eTyy_xVnWelsLa4Q", Symbols[1], Symbols_total);
         }
         if (Symbols.length > 2) {
             const ws2 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-            getDataWithSocket(ws2, "wsx87-Jw_pCkochqfjRA", Symbols[2], Symbols_total);
+            getDataWithSocket(ws2, "wsidCrWyEJPCbxqcQqnQ", Symbols[2], Symbols_total);
         }
 
     } catch (error) {

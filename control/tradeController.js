@@ -161,8 +161,8 @@ exports.checkPosition = async () => {
 exports.getAllPosition = async (req, res) => {
     const user = await User.findOne({ where: { token: req.headers.authorization } })
     const leverage = user.leverage;
-    const PositionList = await Positions.findAll({ where: { status: "Open" } });
-    const RealPositionList = await Positions.findAll({ where: { status: "Close" } });
+    const PositionList = await Positions.findAll({ where: { status: "Open", userID : user.id } });
+    const RealPositionList = await Positions.findAll({ where: { status: "Close", userID : user.id } });
 
     res.status(200).json({ positions: PositionList, leverage: leverage, realPositions: RealPositionList, margin: user.usedMargin, balance: user.balance });
 }
