@@ -59,7 +59,7 @@ const startServer = async () => {
 
     const symbols = await Symbols.findAll({attributes: ['code']});
     global.symbols = symbols.map(item => item.code);
-    // getRealtimeData(symbols);
+    getRealtimeData(symbols);
 
 }
 

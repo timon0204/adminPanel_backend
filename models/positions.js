@@ -1,5 +1,6 @@
 const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
+const leverage = require('./leverage');
 
 module.exports = (sequelize, Sequelize) => {
     const Positions = sequelize.define(
@@ -52,6 +53,10 @@ module.exports = (sequelize, Sequelize) => {
             },
             commission: {
                 type: Sequelize.DOUBLE(20, 6),
+                allowNull: false,
+            },
+            leverage: {
+                type: Sequelize.INTEGER,
                 allowNull: false,
             },
             realProfit: {

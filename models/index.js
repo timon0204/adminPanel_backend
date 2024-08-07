@@ -21,7 +21,6 @@ db.Sequelize = Sequelize;
 
 db.User = require("./user")(sequelize, Sequelize);
 db.Positions = require("./positions")(sequelize, Sequelize);
-db.RealPositions = require("./real_positions")(sequelize, Sequelize);
 db.Symbols = require("./symbols")(sequelize, Sequelize);
 db.Assets = require("./assets")(sequelize, Sequelize);
 db.Company = require("./company")(sequelize, Sequelize);
