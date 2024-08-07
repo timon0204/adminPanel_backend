@@ -67,7 +67,7 @@ exports.closePosition = async (req, res) => {
     const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
     const pip_size = asset.pip_size;
     const updateMargin = usedMargin - (closePosition.size / pip_size * closePosition.startPrice) * leverage.toFixed(2);
-    const stopPrice = closePosition.type == "Sell" ? global.bids[global.symbols.indexOf(closePosition.symbolName)] : global.asks[global.symbols.indexOf(closePosition.symbolName)];
+    const stopPrice = closePosition.type != "Sell" ? global.bids[global.symbols.indexOf(closePosition.symbolName)] : global.asks[global.symbols.indexOf(closePosition.symbolName)];
     const profit = (closePosition.type == "Sell" ? -1 : 1) * (stopPrice - closePosition.startPrice) / pip_size * closePosition.size * leverage - closePosition.commission;
     const updateBalance = balance + profit;
 
@@ -101,8 +101,8 @@ exports.checkPosition = async () => {
         const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
         const user = await User.findOne({ where: { id: position.userID } })
         const pip_size = asset.pip_size;
-        const stopPrice = position.type == "Sell" ? global.bids[global.symbols.indexOf(position.symbolName)] : global.asks[global.symbols.indexOf(position.symbolName)];
-        const profit = (position.type == "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size * user.leverage - position.commission;
+        const stopPrice = position.type != "Sell" ? global.bids[global.symbols.indexOf(position.symbolName)] : global.asks[global.symbols.indexOf(position.symbolName)];
+        const profit = (position.type != "Sell" ? -1 : 1) * (stopPrice - position.startPrice) / pip_size * position.size * user.leverage - position.commission;
         // console.log((stopPrice - position.startPrice) * symbolrate * position.size)
         // console.log(stopPrice, " profit : ", profit, "takeProfit : ", position.takeProfit, "stopLoss : ", position.stopLoss)
         if (profit > position.takeProfit && position.takeProfit > 0) {
