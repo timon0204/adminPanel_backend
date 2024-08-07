@@ -18,6 +18,11 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.DOUBLE(20,6),
                 allowNull: false,
             },
+            leverage: {
+                type: Sequelize.DOUBLE(20, 6),
+                allowNull: false,
+                defaultValue: 1
+            },
         },
         {
             tableName: "assets",

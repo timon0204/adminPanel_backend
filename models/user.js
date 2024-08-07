@@ -34,11 +34,6 @@ module.exports = (sequelize, Sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            leverage: {
-                type: Sequelize.DOUBLE(20, 6),
-                allowNull: false,
-                defaultValue: 1
-            },
             balance: {
                 type: Sequelize.DOUBLE(20, 2),
                 allowNull: false,

@@ -44,7 +44,7 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, leverage, balance, usedMargin, companyEmail, type} = req.body;
+        const { name, email, balance, usedMargin, companyEmail, type} = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
@@ -54,7 +54,7 @@ exports.createUser = async (req, res) => {
                 return res.status(500).send({message: "The user already existed!"})
             }
         }
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({hashedPassword}, secretKey), companyEmail: companyEmail, type: type,  createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({hashedPassword}, secretKey), companyEmail: companyEmail, type: type,  createdAt: createdAt });
         user.save();
         return res.status(200).send({ message: "created successfully",});
     } catch (err) {
@@ -65,7 +65,7 @@ exports.createUser = async (req, res) => {
 
 exports.updateUser = async (req, res) => {
     try {
-        const { userId, name, email, password, leverage, balance, allow, usedMargin, companyEmail } = req.body;
+        const { userId, name, email, password, balance, allow, usedMargin, companyEmail } = req.body;
         const saltRounds = 10;
         let hashedPassword = '';
         if (password.length) {
@@ -74,7 +74,7 @@ exports.updateUser = async (req, res) => {
             hashedPassword = await bcrypt.hash("123456", saltRounds);
         }
         const updatedAt = Date.now();
-        const user = await User.update({ name: name, email: email, password: hashedPassword, leverage: leverage, balance: balance, usedMargin: usedMargin, allow: allow, companyEmail: companyEmail, updatedAt: updatedAt }, { where: { id: userId } });
+        const user = await User.update({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: usedMargin, allow: allow, companyEmail: companyEmail, updatedAt: updatedAt }, { where: { id: userId } });
         return res.status(200).send({ message: "Updating successfully", updatedOne: user });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating user" });
@@ -155,9 +155,9 @@ exports.getAssets = async (req, res) => {
 
 exports.updateAsset = async (req, res) => {
     try {
-        const { name, pip_size, assetId } = req.body;
+        const { name, pip_size, assetId, leverage } = req.body;
         const updatedAt = Date.now();
-        await Assets.update({ name: name, pip_size: pip_size, updatedAt: updatedAt }, { where: { id: assetId } });
+        await Assets.update({ name: name, pip_size: pip_size, leverage: leverage, updatedAt: updatedAt }, { where: { id: assetId } });
         return res.status(200).send({ message: "Edit symbol successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing Assets" });
@@ -166,9 +166,9 @@ exports.updateAsset = async (req, res) => {
 
 exports.createAsset = async (req, res) => {
     try {
-        const { name, pip_size } = req.body;
+        const { name, pip_size, leverage } = req.body;
         const createdAt = Date.now();
-        const asset = await Assets.create({ name: name, pip_size: pip_size, createdAt: createdAt });
+        const asset = await Assets.create({ name: name, pip_size: pip_size, leverage: leverage, createdAt: createdAt });
         asset.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
