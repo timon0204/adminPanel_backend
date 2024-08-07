@@ -1,4 +1,4 @@
-const { Positions, RealPositions, User, Symbols, Assets, Commission } = require("../models");
+const { Positions, RealPositions, User, Symbols, Assets, Commission, Leverage } = require("../models");
 const global = require("../config/global");
 const { where } = require("sequelize");
 const symbols = require("../models/symbols");
@@ -11,7 +11,7 @@ exports.createPosition = async (req, res) => {
     const { amount, symbol, option } = req.body;
 
     const user = await User.findOne({ where: { token: req.headers.authorization } })
-    const leverage = user.leverage;
+    const leverage = await Leverage.findOne({ where: { companyEmail: user.companyEmail } })[`${symbolIndex.assetName}`];
     const { balance, usedMargin } = user;
     const symbolIndex = await Symbols.findOne({ where: { code: symbol } });
 
@@ -40,7 +40,7 @@ exports.createPosition = async (req, res) => {
     });
 
     await User.update({ balance: balance, usedMargin: updateMargin ? updateMargin : 0 }, { where: { id: user.id } });
-    const PositionList = await Positions.findAll({ where: { status: 'Open' } });
+    const PositionList = await Positions.findAll({ where: { status: 'Open', userID: user.id } });
 
     res.status(200).json({ positions: PositionList, leverage: leverage, balance: user.balance, margin: updateMargin });
 };
@@ -51,7 +51,7 @@ exports.closePosition = async (req, res) => {
     const { id } = req.body;
     const closePosition = await Positions.findOne({ where: { id: id, status: 'Open' } });
     const user = await User.findOne({ where: { token: req.headers.authorization } })
-    const leverage = user.leverage;
+    const leverage = await Leverage.findOne({ where: { companyEmail: user.companyEmail } })[`${symbolIndex.assetName}`];
     const { balance, usedMargin } = user;
 
     if (!closePosition) {
@@ -88,8 +88,8 @@ exports.closePosition = async (req, res) => {
     });
     await User.update({ usedMargin: updateMargin ? updateMargin : 0, balance: updateBalance }, { where: { id: user.id } });
 
-    const PositionList = await Positions.findAll({ where: { status: 'Open' } });
-    const RealPositionList = await Positions.findAll({ where: { status: 'Close' } });
+    const PositionList = await Positions.findAll({ where: { status: 'Open', userID: user.id } });
+    const RealPositionList = await Positions.findAll({ where: { status: 'Close', userID: user.id } });
     res.status(200).json({ positions: PositionList, leverage: leverage, realPositions: RealPositionList, margin: updateMargin, balance: balance });
 };
 
@@ -160,9 +160,9 @@ exports.checkPosition = async () => {
 
 exports.getAllPosition = async (req, res) => {
     const user = await User.findOne({ where: { token: req.headers.authorization } })
-    const leverage = user.leverage;
-    const PositionList = await Positions.findAll({ where: { status: "Open", userID : user.id } });
-    const RealPositionList = await Positions.findAll({ where: { status: "Close", userID : user.id } });
+    const leverage = await Leverage.findOne({ where: { companyEmail: user.companyEmail } })[`${symbolIndex.assetName}`];
+    const PositionList = await Positions.findAll({ where: { status: "Open", userID: user.id } });
+    const RealPositionList = await Positions.findAll({ where: { status: "Close", userID: user.id } });
 
     res.status(200).json({ positions: PositionList, leverage: leverage, realPositions: RealPositionList, margin: user.usedMargin, balance: user.balance });
 }
@@ -172,7 +172,7 @@ exports.updatePosition = async (req, res) => {
 
     await Positions.update({ takeProfit: Number(updateProfit), stopLoss: Number(updateLoss) }, { where: { id: updateID } })
 
-    const PositionList = await Positions.findAll({ where: { status: "Open" } });
+    const PositionList = await Positions.findAll({ where: { status: "Open", userID: user.id } });
 
     res.status(200).json({ positions: PositionList });
 }
