@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { where } = require('sequelize');
-const { User, Positions, Symbols, Assets, Company, Commission } = require("../models");
+const { User, Positions, Symbols, Assets, Company, Commission, Leverage } = require("../models");
 const jwt = require('jsonwebtoken');
 const { json } = require('body-parser');
 const symbols = require('../models/symbols');
@@ -34,9 +34,9 @@ exports.login = async (req, res) => {
 exports.getUsers = async (req, res) => {
     try {
         const users = await User.findAll();
-        const company = await Company.findAll({attributes: ['email']});
+        const company = await Company.findAll({ attributes: ['email'] });
         const companyEmail = company.map(item => item.email);
-        return res.status(200).send({ users: users, companyEmail: companyEmail});
+        return res.status(200).send({ users: users, companyEmail: companyEmail });
     } catch (error) {
         return res.status(500).send({ message: "An error occurred while fetching users." });
     }
@@ -44,19 +44,19 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, balance, usedMargin, companyEmail, type} = req.body;
+        const { name, email, balance, usedMargin, companyEmail, type } = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
-        const SameUser = await User.findOne({where: {email: email}});
-        if(SameUser) {
-            if(SameUser.type == type) {
-                return res.status(500).send({message: "The user already existed!"})
+        const SameUser = await User.findOne({ where: { email: email } });
+        if (SameUser) {
+            if (SameUser.type == type) {
+                return res.status(500).send({ message: "The user already existed!" })
             }
         }
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({hashedPassword}, secretKey), companyEmail: companyEmail, type: type,  createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({ hashedPassword }, secretKey), companyEmail: companyEmail, type: type, createdAt: createdAt });
         user.save();
-        return res.status(200).send({ message: "created successfully",});
+        return res.status(200).send({ message: "created successfully", });
     } catch (err) {
         console.log("this is a err", err);
         return res.status(500).send({ message: "An error occurred while creating user" });
@@ -98,7 +98,7 @@ exports.deleteUser = async (req, res) => {
 exports.getSymbols = async (req, res) => {
     try {
         const symbols = await Symbols.findAll();
-        const assets = await Assets.findAll({attributes: ['name']});
+        const assets = await Assets.findAll({ attributes: ['name'] });
         const assetNames = assets.map(item => item.name);
         return res.status(200).send({ symbols: symbols, assetNames: assetNames });
     } catch (err) {
@@ -122,7 +122,7 @@ exports.createSymbol = async (req, res) => {
     try {
         const { name, type, code, assetName } = req.body;
         const createdAt = Date.now();
-        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt});
+        const symbol = await Symbols.create({ name: name, type: type, code: code, assetName: assetName, createdAt: createdAt });
         symbol.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
@@ -172,7 +172,7 @@ exports.createAsset = async (req, res) => {
         asset.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
-        return res.status(500).send({ message: 'An error occured while creating Assets',err })
+        return res.status(500).send({ message: 'An error occured while creating Assets', err })
     }
 }
 
@@ -202,33 +202,33 @@ exports.getPositions = async (req, res) => {
 exports.getCompanies = async (req, res) => {
     try {
         const companies = await Company.findAll();
-        return res.status(200).send({companies: companies});
+        return res.status(200).send({ companies: companies });
     } catch (err) {
-        return res.status(200).send({message: "An error occurred while fetching companies"})
+        return res.status(200).send({ message: "An error occurred while fetching companies" })
     }
 }
 
 exports.createCompany = async (req, res) => {
     try {
-        const {email, password,role} = req.body;
+        const { email, password, role } = req.body;
         let hashedPassword = '';
         const saltRounds = 10;
-        if(password.length) {
+        if (password.length) {
             hashedPassword = await bcrypt.hash(password, saltRounds);
         } else {
             hashedPassword = await bcrypt.hash('123456', saltRounds);
         }
-        const company = await Company.create({email: email, password: password, role: role});
+        const company = await Company.create({ email: email, password: password, role: role });
         company.save();
-        return res.status(200).send({message: "Company created successfully"});
+        return res.status(200).send({ message: "Company created successfully" });
     } catch (err) {
-        return res.status(200).send({message: "An error occurred while creating companies"})
+        return res.status(200).send({ message: "An error occurred while creating companies" })
     }
 }
 
-exports.updateCompany = async (req, res) =>{
+exports.updateCompany = async (req, res) => {
     try {
-        const { companyId, email, password, role} = req.body;
+        const { companyId, email, password, role } = req.body;
         const saltRounds = 10;
         let hashedPassword = '';
         if (password.length) {
@@ -238,7 +238,7 @@ exports.updateCompany = async (req, res) =>{
         }
         const updatedAt = Date.now();
         await Company.update({ password: password, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
-        return res.status(200).send({ message: "Updating successfully"});
+        return res.status(200).send({ message: "Updating successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating company" });
     }
@@ -261,18 +261,18 @@ exports.deleteCompany = async (req, res) => {
 exports.getCommissions = async (req, res) => {
     try {
         const commissions = await Commission.findAll();
-        return res.status(200).send({commissions: commissions});
+        return res.status(200).send({ commissions: commissions });
     } catch (err) {
-        return res.status(200).send({message: "An error occurred while fetching commissions"})
+        return res.status(200).send({ message: "An error occurred while fetching commissions" })
     }
 }
 
 exports.updateCommission = async (req, res) => {
     try {
         const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD, commissionId } = req.body;
-    console.log("this is the req", BTCUSD);
-    const updatedAt = Date.now();
-        await Commission.update({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil:Oil, BTCUSD: BTCUSD, updatedAt: updatedAt }, { where: { id: commissionId } });
+        console.log("this is the req", BTCUSD);
+        const updatedAt = Date.now();
+        await Commission.update({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil: Oil, BTCUSD: BTCUSD, updatedAt: updatedAt }, { where: { id: commissionId } });
         return res.status(200).send({ message: "Edit commission successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing commission" });
@@ -283,11 +283,11 @@ exports.createCommission = async (req, res) => {
     try {
         const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD } = req.body;
         const createdAt = Date.now();
-        const commission = await Commission.create({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil:Oil, BTCUSD: BTCUSD, createdAt: createdAt });
+        const commission = await Commission.create({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil: Oil, BTCUSD: BTCUSD, createdAt: createdAt });
         commission.save();
         return res.status(200).send({ message: 'Create Commission successfully' })
     } catch (err) {
-        return res.status(500).send({ message: 'An error occured while creating Commission',err })
+        return res.status(500).send({ message: 'An error occured while creating Commission', err })
     }
 }
 
@@ -302,5 +302,52 @@ exports.deleteCommission = async (req, res) => {
         return res.status(200).send({ message: "Successfully deleted" });
     } catch (err) {
         return res.status(500).send({ message: "An error occurred while deleting commission" });
+    }
+}
+
+exports.getLeverage = async (req, res) => {
+    try {
+        const leverage = await Leverage.findAll();
+        return res.status(200).send({ leverages: leverage });
+    } catch (err) {
+        return res.status(200).send({ message: "An error occurred while fetching leverages" })
+    }
+}
+
+exports.updateLeverage = async (req, res) => {
+    try {
+        const { companyEmail, Forex, Indices, Crypto, Futures, leverageId } = req.body;
+        console.log("this is the req", BTCUSD);
+        const updatedAt = Date.now();
+        await Commission.update({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, updatedAt: updatedAt }, { where: { id: leverageId } });
+        return res.status(200).send({ message: "Edit leverage successfully" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occured while editing leverage" });
+    }
+}
+
+exports.createLeverage = async (req, res) => {
+    try {
+        const { companyEmail, Forex, Indices, Crypto, Futures } = req.body;
+        const createdAt = Date.now();
+        const leverage = await Leverage.create({ companyEmail: companyEmail, Forex: Forex, Crypto: Crypto, Indices: Indices, Futures: Futures, createdAt: createdAt });
+        leverage.save();
+        return res.status(200).send({ message: 'Create Leverage successfully' })
+    } catch (err) {
+        return res.status(500).send({ message: 'An error occured while creating Leverage', err })
+    }
+}
+
+exports.deleteLeverage = async (req, res) => {
+    try {
+        const { leverageId } = req.body;
+        const leverage = await Leverage.findOne({ where: { id:leverageId } });
+        if (!leverage) {
+            return res.status(404).send({ message: 'Cannot find the leverage' });
+        }
+        await Leverage.destroy({ where: { id: leverageId } });
+        return res.status(200).send({ message: "Successfully deleted" });
+    } catch (err) {
+        return res.status(500).send({ message: "An error occurred while deleting leverage" });
     }
 }
