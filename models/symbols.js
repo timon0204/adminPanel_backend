@@ -49,12 +49,6 @@ module.exports = (sequelize, Sequelize) => {
             assetName: "Forex",
         });
         await Symbols.create({
-            name: "USD to JPY",
-            type: "FX:USDJPY",
-            code: "USDJPY",
-            assetName: "Forex",
-        });
-        await Symbols.create({
             name: "USD to CHF",
             type: "FX:USDCHF",
             code: "USDCHF",
@@ -76,12 +70,6 @@ module.exports = (sequelize, Sequelize) => {
             name: "US30",
             type: "BLACKBULL:US30",
             code: "US30",
-            assetName: "Indices",
-        });
-        await Symbols.create({
-            name: "UK100",
-            type: "BLACKBULL:UK100",
-            code: "UK100",
             assetName: "Indices",
         });
         await Symbols.create({
