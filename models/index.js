@@ -26,6 +26,7 @@ db.Symbols = require("./symbols")(sequelize, Sequelize);
 db.Assets = require("./assets")(sequelize, Sequelize);
 db.Company = require("./company")(sequelize, Sequelize);
 db.Commission = require("./commission")(sequelize, Sequelize);
+db.Leverage = require("./leverage")(sequelize, Sequelize);
 
 db.sync = async () => {
     await db.sequelize.sync();
@@ -42,6 +43,7 @@ db.sync = async () => {
     await db['Symbols'].migrate();
     await db['Assets'].migrate();
     await db['Commission'].migrate();
+    await db['Leverage'].migrate();
 };
 
 module.exports = db

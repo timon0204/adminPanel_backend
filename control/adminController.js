@@ -49,7 +49,7 @@ exports.getUsers = async (req, res) => {
 
 exports.createUser = async (req, res) => {
     try {
-        const { name, email, balance, usedMargin, companyEmail, type } = req.body;
+        const { name, email, balance, companyEmail, type } = req.body;
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash("123456", saltRounds);
         const createdAt = Date.now();
@@ -59,7 +59,7 @@ exports.createUser = async (req, res) => {
                 return res.status(500).send({ message: "The user already existed!" })
             }
         }
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({ hashedPassword }, secretKey), companyEmail: companyEmail, type: type, createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, usedMargin: 0, allow: "Allow", token: jwt.sign({ hashedPassword }, secretKey), companyEmail: companyEmail, type: type, createdAt: createdAt });
         user.save();
         return res.status(200).send({ message: "created successfully", });
     } catch (err) {
@@ -160,9 +160,9 @@ exports.getAssets = async (req, res) => {
 
 exports.updateAsset = async (req, res) => {
     try {
-        const { name, pip_size, assetId, leverage } = req.body;
+        const { name, pip_size, assetId} = req.body;
         const updatedAt = Date.now();
-        await Assets.update({ name: name, pip_size: pip_size, leverage: leverage, updatedAt: updatedAt }, { where: { id: assetId } });
+        await Assets.update({ name: name, pip_size: pip_size, updatedAt: updatedAt }, { where: { id: assetId } });
         return res.status(200).send({ message: "Edit symbol successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing Assets" });
@@ -171,9 +171,9 @@ exports.updateAsset = async (req, res) => {
 
 exports.createAsset = async (req, res) => {
     try {
-        const { name, pip_size, leverage } = req.body;
+        const { name, pip_size } = req.body;
         const createdAt = Date.now();
-        const asset = await Assets.create({ name: name, pip_size: pip_size, leverage: leverage, createdAt: createdAt });
+        const asset = await Assets.create({ name: name, pip_size: pip_size, createdAt: createdAt });
         asset.save();
         return res.status(200).send({ message: 'Create symbol successfully' })
     } catch (err) {
@@ -245,7 +245,7 @@ exports.createCompany = async (req, res) => {
         } else {
             hashedPassword = await bcrypt.hash('123456', saltRounds);
         }
-        const company = await Company.create({ email: email, password: password, role: role });
+        const company = await Company.create({ email: email, password: hashedPassword, role: role });
         company.save();
         return res.status(200).send({ message: "Company created successfully" });
     } catch (err) {
@@ -264,7 +264,7 @@ exports.updateCompany = async (req, res) => {
             hashedPassword = await bcrypt.hash("123456", saltRounds);
         }
         const updatedAt = Date.now();
-        await Company.update({ password: password, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
+        await Company.update({ password: hashedPassword, email: email, role: role, updatedAt: updatedAt }, { where: { id: companyId } });
         return res.status(200).send({ message: "Updating successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while updating company" });
@@ -274,7 +274,7 @@ exports.updateCompany = async (req, res) => {
 exports.deleteCompany = async (req, res) => {
     try {
         const { companyId } = req.body;
-        const company = await Assets.findOne({ where: { id: companyId } });
+        const company = await Company.findOne({ where: { id: companyId } });
         if (!company) {
             return res.status(404).send({ message: 'Cannot find the company' });
         }
@@ -299,10 +299,9 @@ exports.getCommissions = async (req, res) => {
 
 exports.updateCommission = async (req, res) => {
     try {
-        const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD, commissionId } = req.body;
-        console.log("this is the req", BTCUSD);
+        const { companyEmail, Forex, Indices, Crypto, Futures, commissionId } = req.body;
         const updatedAt = Date.now();
-        await Commission.update({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil: Oil, BTCUSD: BTCUSD, updatedAt: updatedAt }, { where: { id: commissionId } });
+        await Commission.update({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, updatedAt: updatedAt }, { where: { id: commissionId } });
         return res.status(200).send({ message: "Edit commission successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing commission" });
@@ -311,9 +310,9 @@ exports.updateCommission = async (req, res) => {
 
 exports.createCommission = async (req, res) => {
     try {
-        const { companyEmail, Major, JPYpairs, Indices, Metal, Oil, BTCUSD } = req.body;
+        const { companyEmail, Forex, Indices, Crypto, Futures} = req.body;
         const createdAt = Date.now();
-        const commission = await Commission.create({ companyEmail: companyEmail, Major: Major, JPYpairs: JPYpairs, Indices: Indices, Metal: Metal, Oil: Oil, BTCUSD: BTCUSD, createdAt: createdAt });
+        const commission = await Commission.create({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, createdAt: createdAt });
         commission.save();
         return res.status(200).send({ message: 'Create Commission successfully' })
     } catch (err) {
@@ -343,6 +342,7 @@ exports.getLeverages = async (req, res) => {
         const leverage = await Leverage.findAll({ where: { companyEmail: originCompany.email } });
         return res.status(200).send({ leverages: leverage });
     } catch (err) {
+        console.log("GetLeveraged | ", err);
         return res.status(500).send({ message: "An error occurred while fetching leverages" })
     }
 }
@@ -351,7 +351,7 @@ exports.updateLeverage = async (req, res) => {
     try {
         const { companyEmail, Forex, Indices, Crypto, Futures, leverageId } = req.body;
         const updatedAt = Date.now();
-        await Commission.update({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, updatedAt: updatedAt }, { where: { id: leverageId } });
+        await Leverage.update({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, updatedAt: updatedAt }, { where: { id: leverageId } });
         return res.status(200).send({ message: "Edit leverage successfully" });
     } catch (err) {
         return res.status(500).send({ message: "An error occured while editing leverage" });
