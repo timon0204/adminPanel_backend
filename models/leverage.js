@@ -19,15 +19,15 @@ module.exports = (sequelize, Sequelize) => {
                 allowNull: false,
             },
             Indices: {
-                type: Sequelize.STRING,
+                type: Sequelize.INTEGER,
                 allowNull: false,
             },
             Crypto: {
-                type: Sequelize.STRING,
+                type: Sequelize.INTEGER,
                 allowNull: false,
             },
             Futures: {
-                type: Sequelize.STRING,
+                type: Sequelize.INTEGER,
                 allowNull: false,
             },
         },

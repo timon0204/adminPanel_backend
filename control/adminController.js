@@ -4,27 +4,29 @@ const { User, Positions, Symbols, Assets, Company, Commission, Leverage } = requ
 const jwt = require('jsonwebtoken');
 const { json } = require('body-parser');
 const symbols = require('../models/symbols');
+const company = require('../models/company');
+const positions = require('../models/positions');
 const secretKey = 'tradeSecretKey';
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await Company.findOne({ where: { email: email } });
-        if (user) {
-            if (user.role != "Admin") {
-                return res.status(401).json({ state: false, message: "Invaild User" });
+        const company = await Company.findOne({ where: { email: email } });
+        if (company) {
+            if (company.role != "Admin") {
+                return res.status(401).json({ state: false, message: "Invaild company" });
             }
-            const result = await bcrypt.compare(password, user.password);
+            const result = await bcrypt.compare(password, company.password);
             if (result) {
-                const payload = { name: user.name, password: user.password };
+                const payload = { id: company.id, password: company.password };
                 const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-                await Company.update({ token: token }, { where: { id: user.id } });
+                await Company.update({ token: token }, { where: { id: company.id } });
                 return res.status(200).json({ state: true, token: token });
             } else {
-                return res.status(401).json({ state: false, message: "Invalid User" });
+                return res.status(401).json({ state: false, message: "Invalid Company" });
             }
         } else {
-            return res.status(401).json({ state: false, message: "Invalid User" });
+            return res.status(401).json({ state: false, message: "Invalid Company" });
         }
     } catch (error) {
         return res.status(500).json({ state: false, message: "An error occurred during authentication." });
@@ -33,8 +35,11 @@ exports.login = async (req, res) => {
 
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.findAll();
+        const token = req.headers.authorization || "";
+        const decodedToken = jwt.verify(token, secretKey);
         const company = await Company.findAll({ attributes: ['email'] });
+        const originCompany = await Company.findOne({ where: { id: decodedToken.id } });
+        const users = await User.findAll({ where: { companyEmail: originCompany.email } });
         const companyEmail = company.map(item => item.email);
         return res.status(200).send({ users: users, companyEmail: companyEmail });
     } catch (error) {
@@ -192,10 +197,32 @@ exports.deleteAsset = async (req, res) => {
 
 exports.getPositions = async (req, res) => {
     try {
-        const positions = await Positions.findAll();
-        return res.status(200).send({ positions: positions });
+        const token = req.headers.authorization || "";
+
+        if (!token) {
+            return res.status(401).send({ message: 'Authorization token is required' });
+        }
+
+        const decodedToken = jwt.verify(token, secretKey);
+        const originCompany = await Company.findOne({ where: { id: decodedToken.id } });
+
+        if (!originCompany) {
+            return res.status(404).send({ message: 'Company not found' });
+        }
+
+        const users = await User.findAll({ where: { companyEmail: originCompany.email } });
+        const userIds = users.map(user => user.id);
+
+        const positions = await Positions.findAll({
+            where: {
+                userId: userIds
+            }
+        });
+
+        return res.status(200).send({ positions });
     } catch (err) {
-        return res.status(200).send({ message: "An error occurred while fetching postions" });
+        console.error('Error fetching positions:', err);
+        return res.status(500).send({ message: 'An error occurred', error: err.message });
     }
 }
 
@@ -260,7 +287,10 @@ exports.deleteCompany = async (req, res) => {
 
 exports.getCommissions = async (req, res) => {
     try {
-        const commissions = await Commission.findAll();
+        const token = req.headers.authorization || "";
+        const decodedToken = jwt.verify(token, secretKey);
+        const originCompany = await Company.findOne({ where: { id: decodedToken.id } });
+        const commissions = await Commission.findAll({ where: { companyEmail: originCompany.email } });
         return res.status(200).send({ commissions: commissions });
     } catch (err) {
         return res.status(200).send({ message: "An error occurred while fetching commissions" })
@@ -305,19 +335,21 @@ exports.deleteCommission = async (req, res) => {
     }
 }
 
-exports.getLeverage = async (req, res) => {
+exports.getLeverages = async (req, res) => {
     try {
-        const leverage = await Leverage.findAll();
+        const token = req.headers.authorization || "";
+        const decodedToken = jwt.verify(token, secretKey);
+        const originCompany = await Company.findOne({ where: { id: decodedToken.id } });
+        const leverage = await Leverage.findAll({ where: { companyEmail: originCompany.email } });
         return res.status(200).send({ leverages: leverage });
     } catch (err) {
-        return res.status(200).send({ message: "An error occurred while fetching leverages" })
+        return res.status(500).send({ message: "An error occurred while fetching leverages" })
     }
 }
 
 exports.updateLeverage = async (req, res) => {
     try {
         const { companyEmail, Forex, Indices, Crypto, Futures, leverageId } = req.body;
-        console.log("this is the req", BTCUSD);
         const updatedAt = Date.now();
         await Commission.update({ companyEmail: companyEmail, Forex: Forex, Indices: Indices, Crypto: Crypto, Futures: Futures, updatedAt: updatedAt }, { where: { id: leverageId } });
         return res.status(200).send({ message: "Edit leverage successfully" });
@@ -341,7 +373,7 @@ exports.createLeverage = async (req, res) => {
 exports.deleteLeverage = async (req, res) => {
     try {
         const { leverageId } = req.body;
-        const leverage = await Leverage.findOne({ where: { id:leverageId } });
+        const leverage = await Leverage.findOne({ where: { id: leverageId } });
         if (!leverage) {
             return res.status(404).send({ message: 'Cannot find the leverage' });
         }
