@@ -54,7 +54,7 @@ exports.createUser = async (req, res) => {
                 return res.status(500).send({message: "The user already existed!"})
             }
         }
-        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", companyEmail: companyEmail, type: type,  createdAt: createdAt });
+        const user = await User.create({ name: name, email: email, password: hashedPassword, balance: balance, leverage: leverage, usedMargin: usedMargin, allow: "Allow", token: jwt.sign({hashedPassword}, secretKey), companyEmail: companyEmail, type: type,  createdAt: createdAt });
         user.save();
         return res.status(200).send({ message: "created successfully",});
     } catch (err) {

@@ -17,7 +17,7 @@ exports.createPosition = async (req, res) => {
 
     const asset = await Assets.findOne({ where: { name: symbolIndex.assetName } });
     const commissions = await Commission.findOne({ where: { companyEmail: user.companyEmail } });
-    const commission = commissions[`${symbolIndex.assetName}`];
+    const commission = commissions[`${symbolIndex.assetName}`] * amount / 0.01;
     console.log(symbolIndex.assetName, commission);
     const pip_size = asset.pip_size;
     const symbolID = symbolIndex.id;
@@ -39,8 +39,8 @@ exports.createPosition = async (req, res) => {
         startPrice: option ? global.bids[global.symbols.indexOf(symbol)] : global.asks[global.symbols.indexOf(symbol)],
     });
 
-    await User.update({ balance: balance, usedMargin: updateMargin }, { where: { id: user.id } });
-    const PositionList = await Positions.findAll();
+    await User.update({ balance: balance, usedMargin: updateMargin ? updateMargin : 0 }, { where: { id: user.id } });
+    const PositionList = await Positions.findAll({ where: { status: 'Open' } });
 
     res.status(200).json({ positions: PositionList, leverage: leverage, balance: user.balance, margin: updateMargin });
 };
@@ -86,7 +86,7 @@ exports.closePosition = async (req, res) => {
         realProfit: profit,
         closeReason: "UserClose",
     });
-    await User.update({ usedMargin: updateMargin, balance: updateBalance }, { where: { id: user.id } });
+    await User.update({ usedMargin: updateMargin ? updateMargin : 0, balance: updateBalance }, { where: { id: user.id } });
 
     const PositionList = await Positions.findAll({ where: { status: 'Open' } });
     const RealPositionList = await Positions.findAll({ where: { status: 'Close' } });
@@ -127,7 +127,7 @@ exports.checkPosition = async () => {
                     realProfit: profit,
                     closeReason: "TakeProfit",
                 });
-                await User.update({ usedMargin: updateMargin, balance: updateBalance }, { where: { id: user.id } });
+                await User.update({ usedMargin: updateMargin ? updateMargin : 0, balance: updateBalance }, { where: { id: user.id } });
             }
         }
         if (-profit > position.stopLoss && position.stopLoss > 0) {
@@ -152,7 +152,7 @@ exports.checkPosition = async () => {
                     realProfit: profit,
                     closeReason: "StopLoss",
                 })
-                await User.update({ usedMargin: updateMargin, balance: updateBalance }, { where: { id: user.id } });
+                await User.update({ usedMargin: updateMargin ? updateMargin : 0, balance: updateBalance }, { where: { id: user.id } });
             }
         }
     }
@@ -203,7 +203,8 @@ exports.getSymbols = async (req, res) => {
 
 exports.getTradingDatas = async (req, res) => {
     const user = await User.findOne({ where: { token: req.headers.authorization } });
+    const accounts = await User.findAll({ where: { name: user.name } });
     const commissions = await Commission.findOne({ where: { companyEmail: user.companyEmail } });
     console.log("this is the leverage and commition,", user.leverage)
-    return res.status(200).json({ leverage: user.leverage, commissions: commissions });
+    return res.status(200).json({ leverage: user.leverage, commissions: commissions, accounts: accounts });
 }

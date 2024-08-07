@@ -1,6 +1,8 @@
 const MD5 = require('md5.js');
 const bcrypt = require('bcrypt');
 // const company = require('./company');
+const jwt = require('jsonwebtoken');
+const secretKey = 'tradeSecretKey';
 
 module.exports = (sequelize, Sequelize) => {
     const User = sequelize.define(
@@ -30,7 +32,7 @@ module.exports = (sequelize, Sequelize) => {
             },
             token: {
                 type: Sequelize.STRING,
-                allowNull: true,
+                allowNull: false,
             },
             leverage: {
                 type: Sequelize.DOUBLE(20, 6),
@@ -83,6 +85,7 @@ module.exports = (sequelize, Sequelize) => {
                 password: hashedPassword,
                 allow: "Allow",
                 type: "Demo",
+                token:  jwt.sign({hashedPassword, type:"Demo"}, secretKey)
             })
             
             await User.create({
@@ -92,6 +95,7 @@ module.exports = (sequelize, Sequelize) => {
                 password: hashedPassword,
                 allow: "Allow",
                 type: "Live",
+                token: jwt.sign({hashedPassword, type:"Live"}, secretKey)
             })
         // }
     };

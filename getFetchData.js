@@ -9,14 +9,14 @@ var getRealtimeData = function (symbols) {
         const Symbols_total = symbols.map((index) => index.code);
         const Symbols = processArrayInChunks(Symbols_total, 10);
         const ws0 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-        getDataWithSocket(ws0, "wsidCrWyEJPCbxqcQqnQ", Symbols[0]);
+        getDataWithSocket(ws0, "wsidCrWyEJPCbxqcQqnQ", Symbols[0], Symbols_total);
         if (Symbols.length > 1) {
             const ws1 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-            getDataWithSocket(ws1, "sio3aaPYVIHFBnMMLnBww", Symbols[1]);
+            getDataWithSocket(ws1, "sio3aaPYVIHFBnMMLnBww", Symbols[1], Symbols_total);
         }
         if (Symbols.length > 2) {
             const ws2 = new WebSocket('wss://marketdata.tradermade.com/feedadv');
-            getDataWithSocket(ws2, "wsx87-Jw_pCkochqfjRA", Symbols[2]);
+            getDataWithSocket(ws2, "wsx87-Jw_pCkochqfjRA", Symbols[2], Symbols_total);
         }
 
     } catch (error) {
@@ -25,8 +25,8 @@ var getRealtimeData = function (symbols) {
 
 };
 
-const getDataWithSocket = (ws, key, data) => {
-    console.log(data)
+const getDataWithSocket = (ws, key, data, Symbols_total) => {
+    // console.log(data);
     ws.on('open', function open() {
         ws.send(`{"userKey":"${key}", "symbol":"${data}"}`);;
     });
@@ -45,11 +45,11 @@ const getDataWithSocket = (ws, key, data) => {
             if (event.data !== "Connected") {
                 try {
                     const data = JSON.parse(event.data);
-                    global.bids[Symbols.indexOf(data.symbol)] = data.bid;
-                    global.asks[Symbols.indexOf(data.symbol)] = data.ask;
+                    global.bids[Symbols_total.indexOf(data.symbol)] = data.bid;
+                    global.asks[Symbols_total.indexOf(data.symbol)] = data.ask;
                     checkPosition();
                 } catch (error) {
-                    console.log(event.data);
+                    console.log(error);
                 }
 
             }
